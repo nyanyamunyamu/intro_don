@@ -1,0 +1,2349 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>イントロドン オンライン</title>
+<style>
+:root{
+  --bg:#0b0d1a; --panel:#191e42; --panel2:#212751;
+  --line:#2e3568; --fg:#eef0ff; --dim:#9aa2d0;
+  --accent:#ffd23f; --accent2:#ff6b6b; --ok:#3ddc97;
+  --shadow:0 10px 40px rgba(0,0,0,.5);
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0; background:radial-gradient(1200px 800px at 50% -10%,#2a2060 0%,var(--bg) 60%);
+  color:var(--fg); font-family:"Hiragino Kaku Gothic ProN","Yu Gothic UI","Noto Sans JP",system-ui,sans-serif;
+  -webkit-font-smoothing:antialiased;
+}
+.hidden{display:none !important}
+button{font:inherit;color:inherit;cursor:pointer;border:none;border-radius:12px}
+button:disabled{cursor:not-allowed;opacity:.35}
+input,textarea,select{
+  font:inherit;color:var(--fg);background:#0e1130;border:1px solid var(--line);
+  border-radius:10px;padding:10px 12px;width:100%;
+}
+input:focus,textarea:focus{outline:2px solid var(--accent);outline-offset:1px}
+textarea{resize:vertical;line-height:1.6;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px}
+.btn{background:var(--panel2);padding:12px 18px;font-weight:700;border:1px solid var(--line);transition:.15s}
+.btn:hover:not(:disabled){background:#2b3268;transform:translateY(-1px)}
+.btn.primary{background:linear-gradient(135deg,#ffd23f,#ff9f1c);color:#221a00;border-color:transparent}
+.btn.ok{background:linear-gradient(135deg,#3ddc97,#12b886);color:#00291b;border-color:transparent}
+.btn.ng{background:linear-gradient(135deg,#ff5c7a,#e03131);color:#2b0009;border-color:transparent}
+.btn.sm{padding:7px 11px;font-size:12px;border-radius:9px}
+.screen{max-width:1180px;margin:0 auto;padding:24px 16px 60px}
+h1.logo{
+  text-align:center;font-size:clamp(30px,7vw,54px);margin:32px 0 6px;letter-spacing:.06em;
+  background:linear-gradient(135deg,#ffd23f,#ff6b6b 60%,#8b7bff);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+}
+.sub{text-align:center;color:var(--dim);margin:0 0 34px;font-size:14px;line-height:1.8}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:22px;box-shadow:var(--shadow)}
+.row{display:flex;gap:10px;flex-wrap:wrap}
+.row>*{flex:1 1 0;min-width:0}
+label.f{display:block;margin:14px 0 6px;font-size:13px;font-weight:700;color:var(--dim)}
+.hint{font-size:12px;color:var(--dim);line-height:1.8;margin-top:8px}
+.menu{display:grid;gap:14px;grid-template-columns:1fr 1fr;max-width:620px;margin:0 auto}
+.menu button{padding:28px 18px;font-size:19px;font-weight:800;background:var(--panel);border:1px solid var(--line)}
+.menu button span{display:block;font-size:12px;font-weight:500;color:var(--dim);margin-top:8px;line-height:1.6}
+.menu button:hover{border-color:var(--accent);transform:translateY(-2px)}
+@media(max-width:560px){.menu{grid-template-columns:1fr}}
+.back{background:none;border:none;color:var(--dim);padding:6px 0;font-size:14px}
+
+/* tabs */
+.tabs{display:flex;gap:6px;margin-bottom:18px;background:#0e1130;padding:5px;border-radius:12px;border:1px solid var(--line)}
+.tabs button{flex:1;padding:11px 8px;font-size:14px;font-weight:700;background:none;color:var(--dim);border-radius:9px}
+.tabs button.on{background:var(--panel2);color:var(--fg)}
+.tabs button .free{display:inline-block;margin-left:6px;font-size:10px;font-weight:800;color:#00291b;background:var(--ok);border-radius:5px;padding:1px 5px;vertical-align:1px}
+@media(max-width:620px){.tabs{flex-direction:column}.tabs button{font-size:13px}}
+details.adv{margin-top:14px;border:1px solid var(--line);border-radius:12px;padding:10px 14px;background:#0e1130}
+details.adv summary{cursor:pointer;font-size:13px;font-weight:700;color:var(--dim)}
+.keyrow{display:flex;gap:8px;align-items:center}
+.keyrow input{flex:1}
+.state{font-size:13px;line-height:1.8;margin-top:12px;min-height:22px}
+.state .err{color:var(--accent2)}
+.state .good{color:var(--ok)}
+.bar{height:6px;background:#0e1130;border-radius:99px;overflow:hidden;margin:10px 0}
+.bar>i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--ok),var(--accent));transition:width .25s}
+.songlist{max-height:320px;overflow:auto;margin-top:12px;border:1px solid var(--line);border-radius:12px}
+.srow{display:flex;align-items:center;gap:10px;padding:9px 12px;border-bottom:1px solid #232a55;font-size:13px}
+.srow:last-child{border-bottom:none}
+.srow .n{width:26px;color:var(--dim);font-variant-numeric:tabular-nums}
+.srow .t{flex:1;min-width:0}
+.srow .t b{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.srow .t span{color:var(--dim);font-size:12px}
+.srow.bad{opacity:.45}
+.srow .x{background:none;color:var(--dim);padding:4px 8px;font-size:16px}
+.srow .x:hover{color:var(--accent2)}
+
+/* game */
+.topbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px;font-size:13px;color:var(--dim)}
+.topbar b{color:var(--fg);font-size:16px;letter-spacing:.18em}
+.pill{background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:7px 14px}
+.game-grid{display:grid;grid-template-columns:1fr 300px;gap:18px;align-items:start}
+@media(max-width:860px){.game-grid{grid-template-columns:1fr}}
+/* YouTube はプレイヤーが 200x200 未満だと再生しない。狭い画面でも下回らないようにする */
+.playerbox{position:relative;width:100%;aspect-ratio:16/9;min-height:212px;background:#000;border-radius:16px;overflow:hidden;border:1px solid var(--line)}
+.playerbox iframe{width:100%;height:100%;display:block}
+.cover{position:absolute;inset:0;background:linear-gradient(160deg,#1b1f4d,#0a0c22);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;transition:opacity .5s}
+.cover.off{opacity:0;pointer-events:none}
+.disc{width:clamp(90px,22vw,150px);aspect-ratio:1;border-radius:50%;background:repeating-radial-gradient(circle,#20244f 0 3px,#171a3d 3px 6px);display:grid;place-items:center;box-shadow:0 0 0 8px #0e1130,0 14px 40px rgba(0,0,0,.6)}
+.disc.spin{animation:spin 2.4s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.disc-in{width:30%;aspect-ratio:1;border-radius:50%;background:linear-gradient(135deg,var(--accent),#ff6b6b)}
+.cover-label{font-size:clamp(15px,3.4vw,22px);font-weight:800;letter-spacing:.1em;text-align:center;padding:0 16px}
+.tapplay{position:absolute;inset:0;width:100%;background:rgba(0,0,0,.75);color:var(--accent);font-size:20px;font-weight:800;border-radius:0}
+.timerbar{height:8px;background:var(--panel);border-radius:99px;overflow:hidden;margin:12px 0}
+#timerFill{height:100%;width:0%;background:linear-gradient(90deg,var(--ok),var(--accent),var(--accent2));transition:width .12s linear}
+.status{text-align:center;font-size:clamp(15px,3.2vw,19px);font-weight:700;min-height:30px;margin:6px 0 12px;line-height:1.6}
+.status .em{color:var(--accent)}
+.revealbox{background:var(--panel2);border:1px solid var(--line);border-left:5px solid var(--accent);border-radius:12px;padding:16px 18px;margin-bottom:14px}
+.revealbox .t{font-size:clamp(18px,4vw,26px);font-weight:800}
+.revealbox .a{color:var(--dim);margin-top:4px}
+.buzz{
+  width:100%;padding:34px 10px;font-size:clamp(30px,8vw,46px);font-weight:900;letter-spacing:.14em;
+  background:radial-gradient(circle at 50% 25%,#ff8a8a,#e03131 65%,#8f1010);
+  color:#fff;text-shadow:0 3px 10px rgba(0,0,0,.5);
+  box-shadow:0 10px 0 #6d0d0d,0 18px 40px rgba(224,49,49,.35);border-radius:22px;transition:.08s;
+}
+.buzz:active:not(:disabled){transform:translateY(8px);box-shadow:0 2px 0 #6d0d0d}
+.buzz:disabled{background:#2a2f5c;box-shadow:0 6px 0 #1a1e40;color:#5d67a0;text-shadow:none}
+.buzz small{display:block;font-size:12px;letter-spacing:.04em;font-weight:600;opacity:.85;margin-top:8px}
+.answerArea{display:flex;gap:8px;margin-top:12px}
+.answerArea input{flex:1}
+.answerArea button{flex:0 0 auto}
+.side>div{margin-bottom:16px}
+.scoreboard,.hostpanel{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:14px}
+.scoreboard h3,.hostpanel h3{margin:0 0 10px;font-size:13px;color:var(--dim);letter-spacing:.1em}
+.prow{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:10px;margin-bottom:4px;background:#141838}
+.prow.me{outline:1px solid var(--accent)}
+.prow.locked{opacity:.42}
+.prow.off{opacity:.3}
+.prow .nm{flex:1;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.prow .sc{font-weight:900;color:var(--accent);font-variant-numeric:tabular-nums}
+.prow .rk{width:22px;text-align:center;color:var(--dim);font-size:12px}
+.hostpanel .grid{display:grid;gap:8px}
+.hostpanel .grid.two{grid-template-columns:1fr 1fr}
+.hostpanel button{width:100%;padding:12px 8px;font-size:14px;font-weight:800}
+.answercard{background:#141838;border:1px dashed var(--line);border-radius:10px;padding:10px;margin-bottom:10px;font-size:14px;word-break:break-word;line-height:1.7}
+.answercard b{color:var(--accent)}
+.vol{display:flex;align-items:center;gap:10px;font-size:12px;color:var(--dim);margin-top:10px}
+.vol input{flex:1;min-width:0;padding:0;height:24px;background:none;border:none;accent-color:var(--accent)}
+.vol span:first-child{flex:0 0 auto;white-space:nowrap}
+.vol span:last-child{flex:0 0 auto;width:2.4em;text-align:right;font-variant-numeric:tabular-nums}
+.results{text-align:center;padding:10px 0}
+.results .champ{font-size:clamp(24px,6vw,40px);font-weight:900;color:var(--accent);margin:10px 0}
+.toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%);background:#000d;border:1px solid var(--line);padding:12px 20px;border-radius:99px;font-size:14px;z-index:99;box-shadow:var(--shadow);max-width:90vw;text-align:center}
+code.k{background:#0e1130;border:1px solid var(--line);border-radius:5px;padding:1px 6px;font-size:12px}
+.codebig{font-size:clamp(36px,10vw,60px);font-weight:900;letter-spacing:.3em;text-align:center;color:var(--accent);margin:8px 0 4px;text-indent:.3em}
+.chk{display:flex;align-items:center;gap:9px;margin:10px 0;font-size:14px}
+.chk input{width:18px;height:18px;flex:0 0 auto;accent-color:var(--accent)}
+
+/* 音声アンロック用オーバーレイ。ゲーム画面を display:none にしないことで、
+   タップした瞬間に「すでに存在する」プレイヤーを同期的に再生できる（iOS対策） */
+/* backdrop-filter は背後で動く動画の上だと合成が重く、端末によっては操作不能になる */
+.overlay{position:fixed;inset:0;z-index:100;background:#080a1a;
+  display:flex;align-items:center;justify-content:center;padding:24px}
+.overlay-inner{max-width:420px;width:100%;text-align:center}
+.overlay-inner h2{font-size:22px;margin:0 0 12px}
+.overlay-inner p{color:var(--dim);font-size:14px;line-height:1.9;margin:0 0 22px}
+.overlay-inner p.small{font-size:12px;margin:16px 0 0}
+.overlay-inner button{width:100%;padding:24px;font-size:20px}
+
+/* スマホでの操作性: ダブルタップ拡大の遅延をなくし、長押し選択を防ぐ */
+.buzz,.tabs button,.menu button,.hostpanel button,.tapplay{touch-action:manipulation;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
+@media(max-width:520px){
+  .screen{padding:16px 12px 48px}
+  .buzz{padding:26px 8px}
+  .topbar{gap:7px;font-size:12px}
+  .pill{padding:6px 11px}
+  .side>div{margin-bottom:12px}
+  .answerArea{flex-direction:column}
+  .answerArea button{width:100%}
+}
+</style>
+</head>
+<body>
+
+<!-- ============ TOP ============ -->
+<div id="screen-top" class="screen">
+  <h1 class="logo">イントロドン</h1>
+  <p class="sub">テーマを選ぶだけで遊べる、オンライン早押しクイズ。<br>サーバー不要・APIキー不要・部屋コードだけで友達とつながります。</p>
+  <div class="menu">
+    <button id="goHost">🎧 部屋を作る<span>ホストになって出題します（ホストも参加できます）</span></button>
+    <button id="goJoin">🙋 部屋に入る<span>友達の部屋コードで参加します</span></button>
+  </div>
+  <div style="text-align:center;margin-top:26px">
+    <button id="diagBtn" class="btn" style="font-size:13px;padding:9px 16px">🔧 動作チェック（この端末で遊べるか確認）</button>
+    <div id="diagOut" class="state" style="max-width:540px;margin:14px auto 0;text-align:left"></div>
+    <div id="diagHost" style="max-width:540px;margin:0 auto"></div>
+  </div>
+
+  <p class="hint" style="text-align:center;max-width:660px;margin:28px auto 0">
+    ※ 全員が同じ曲を各自の端末で同時再生します。早押しは「自分の端末で曲が鳴り始めてからの経過ミリ秒」で判定するので、通信の速い/遅いによる有利不利は出ません。
+  </p>
+</div>
+
+<!-- ============ HOST SETUP ============ -->
+<div id="screen-host" class="screen hidden">
+  <button class="back" data-back>← もどる</button>
+  <h1 class="logo" style="font-size:32px;margin:10px 0 24px">部屋を作る</h1>
+
+  <div class="card">
+    <label class="f">あなたの名前</label>
+    <input id="hostName" maxlength="12" placeholder="ホスト名">
+
+    <div class="tabs" style="margin-top:20px">
+      <button id="tabSearch" class="on">🎁 テーマを選ぶ / 曲名から検索<b class="free">無料</b></button>
+      <button id="tabAi">🤖 テーマからAIが選曲</button>
+      <button id="tabManual">✍️ URLを直接書く<b class="free">無料</b></button>
+    </div>
+
+    <!-- AI mode -->
+    <div id="paneAi" class="hidden">
+      <label class="f">テーマ</label>
+      <div class="keyrow">
+        <input id="theme" maxlength="80" placeholder="例: 2010年代のJ-POPヒット / 90年代アニソン / 洋楽ロック定番">
+        <button id="genBtn" class="btn primary" style="flex:0 0 auto">生成</button>
+      </div>
+      <div class="row" style="margin-top:12px">
+        <div>
+          <label class="f">候補曲数</label>
+          <input id="genCount" type="number" min="5" max="60" value="30">
+        </div>
+        <div>
+          <label class="f">選曲に使うモデル</label>
+          <select id="genModel">
+            <option value="claude-opus-5">Claude Opus 5（既定・最高精度／30曲で約15円）</option>
+            <option value="claude-sonnet-5">Claude Sonnet 5（約9円）</option>
+            <option value="claude-haiku-4-5">Claude Haiku 4.5（約3円・最安）</option>
+          </select>
+        </div>
+      </div>
+      <div class="hint">
+        料金の目安は30曲生成1回あたりです。採点用のAI判定は1問あたり0.1円未満。<br>
+        <b>お金をかけたくない場合は「🔎 曲名リストから検索」タブ</b>を使ってください。APIキーなしで同じことができます。
+      </div>
+    </div>
+
+    <!-- search mode (no Anthropic key needed) -->
+    <div id="paneSearch" class="hidden">
+      <label class="f">🎁 テーマから選ぶ（APIキー不要・すぐ遊べます）</label>
+      <div class="keyrow">
+        <select id="presetPick"></select>
+        <button id="presetLoad" class="btn" style="flex:0 0 auto">読み込む</button>
+        <button id="presetDel" class="btn hidden" style="flex:0 0 auto" title="このマイテーマを削除">🗑</button>
+      </div>
+      <div class="hint">選ぶと下の欄にリストが入ります。曲を足したり消したりして調整できます。</div>
+
+      <label class="f" style="margin-top:20px">曲名リスト（1行1曲 / <code class="k">曲名, アーティスト</code>）</label>
+      <textarea id="titleList" rows="9" placeholder="Lemon, 米津玄師
+残酷な天使のテーゼ, 高橋洋子, A Cruel Angel's Thesis
+Gangnam Style, PSY
+
+# 3つ目以降の項目は「採点用の別表記」として使われます
+# 先頭が # の行は無視されます"></textarea>
+      <div class="hint">
+        3つ目以降の項目は採点用の別表記になります（英題・ひらがな表記など）。入れておくと自動採点の精度が上がります。
+      </div>
+      <div style="margin-top:12px">
+        <button id="searchBtn" class="btn primary" style="width:100%">YouTubeを検索して動画に紐付ける</button>
+      </div>
+
+      <div class="keyrow" style="margin-top:12px">
+        <input id="themeName" maxlength="30" placeholder="テーマ名（例: うちのカラオケ定番）">
+        <button id="saveTheme" class="btn" style="flex:0 0 auto">⭐ マイテーマに保存</button>
+      </div>
+      <div class="hint">上のリストに名前をつけて保存すると、次回からドロップダウンで選べます（この端末に保存）。</div>
+
+      <details class="adv" style="margin-top:16px">
+        <summary>📤 マイテーマの書き出し / 読み込み（友達と共有する）</summary>
+        <textarea id="themeIO" rows="8" placeholder="## テーマ名
+曲名, アーティスト, 別表記1, 別表記2
+曲名, アーティスト
+
+## もうひとつのテーマ名
+曲名, アーティスト"></textarea>
+        <div class="keyrow" style="margin-top:10px">
+          <button id="exportThemes" class="btn" style="flex:1">⬇ 書き出す</button>
+          <button id="importThemes" class="btn" style="flex:1">⬆ 読み込む</button>
+          <button id="fileThemes" class="btn" style="flex:0 0 auto">📂 ファイル</button>
+          <input type="file" id="themeFile" accept=".txt,text/plain" class="hidden">
+        </div>
+        <div class="hint">
+          「書き出す」でマイテーマ全部がこの欄に出ます。そのままチャットに貼って友達に送れます。<br>
+          受け取った側は同じ欄に貼って「読み込む」。<code class="k">.txt</code> で受け取ったなら「📂 ファイル」から直接開けます。
+        </div>
+      </details>
+
+      <details class="adv" style="margin-top:12px">
+        <summary>内蔵テーマ以外で遊びたい（無料のチャットAIに作らせる）</summary>
+        <label class="f">テーマ</label>
+        <input id="promptTheme" maxlength="80" placeholder="例: 2000年代の映画主題歌">
+        <div class="keyrow" style="margin-top:10px">
+          <button id="copyPromptBtn" class="btn" style="flex:1">📋 プロンプトをコピー</button>
+          <button id="openClaudeBtn" class="btn" style="flex:1">↗ claude.ai を開く</button>
+        </div>
+        <div class="hint">
+          無料のチャットAI（<a href="https://claude.ai" target="_blank" rel="noopener" style="color:var(--accent)">claude.ai</a> など）にプロンプトを貼ると、そのまま上の欄に貼れる形式で返ってきます。
+        </div>
+      </details>
+    </div>
+
+    <!-- manual mode -->
+    <div id="paneManual" class="hidden">
+      <label class="f">出題リスト（1行1曲）</label>
+      <textarea id="songList" rows="10" placeholder="https://www.youtube.com/watch?v=XXXXXXXXXXX, 曲名, アーティスト, 開始秒
+youtu.be/YYYYYYYYYYY | 曲名（カンマを含む,場合はパイプ区切り） | アーティスト | 1:20
+ZZZZZZZZZZZ, 曲名だけでもOK
+
+# 先頭が # の行はコメントとして無視されます"></textarea>
+      <div class="hint">
+        形式: <code class="k">URL または動画ID , 曲名 , アーティスト , 開始秒</code><br>
+        ・曲名にカンマが入る場合は区切りを <code class="k">|</code> にしてください<br>
+        ・開始秒は <code class="k">45</code> / <code class="k">1:20</code> / <code class="k">1m20s</code> のどれでもOK。URL の <code class="k">?t=</code> も自動で読みます
+      </div>
+    </div>
+
+    <!-- keys + generation progress (shared by AI / search modes) -->
+    <div id="genShared">
+      <details class="adv" id="keyBox">
+        <summary>🔑 APIキーの設定（任意・この端末に保存されます）</summary>
+        <div id="rowAnthropic">
+          <label class="f">Anthropic APIキー（「テーマからAIが選曲」と、微妙な回答のAI判定に使用）</label>
+          <input id="keyAnthropic" type="password" placeholder="sk-ant-...">
+          <div class="hint">
+            <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener" style="color:var(--accent)">console.anthropic.com</a> で発行。
+            未入力でも遊べます（選曲は他タブ、微妙な回答はホストが手動判定）。
+          </div>
+        </div>
+        <label class="f">YouTube Data API キー（推奨・<b>無料</b> / 曲を実際の動画に紐付ける）</label>
+        <input id="keyYoutube" type="password" placeholder="AIza...">
+        <div class="hint">
+          Google Cloud で「YouTube Data API v3」を有効化してキーを発行（課金設定は不要）。1日10,000ユニットまで無料で、1曲の検索に100ユニット使います。<br>
+          未入力でも公開ミラー経由で検索しますが、混雑時は失敗しやすくなります。
+        </div>
+        <div class="chk" style="margin-top:14px">
+          <input type="checkbox" id="keyRemember" checked>
+          <label for="keyRemember">この端末のブラウザに保存する（localStorage）</label>
+        </div>
+      </details>
+
+      <div class="bar"><i id="genBar"></i></div>
+      <div class="state" id="genState"></div>
+      <div class="songlist hidden" id="genList"></div>
+    </div>
+
+    <!-- shared settings -->
+    <div class="row" style="margin-top:20px">
+      <div>
+        <label class="f">出題数（空欄=全部）</label>
+        <input id="playCount" type="number" min="1" max="60" placeholder="10">
+      </div>
+      <div>
+        <label class="f">1問の制限時間（秒）</label>
+        <input id="setLimit" type="number" min="3" max="180" value="30">
+      </div>
+      <div>
+        <label class="f">回答の入力時間（秒）</label>
+        <input id="setAnsLimit" type="number" min="5" max="120" value="20">
+      </div>
+      <div>
+        <label class="f">お手つき</label>
+        <select id="setPenalty">
+          <option value="0">解答権を失うだけ</option>
+          <option value="1">解答権を失う & -1点</option>
+        </select>
+      </div>
+      <div>
+        <label class="f">再生開始位置</label>
+        <select id="setStartMode">
+          <option value="intro">曲のはじめ（イントロドン）</option>
+          <option value="random">ランダム（サビ当て風）</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="chk" style="margin-top:16px">
+      <input type="checkbox" id="setAutoJudge" checked>
+      <label for="setAutoJudge"><b>自動採点する</b> — 回答の表記ゆれを自動照合し、微妙なものだけAIが判定します</label>
+    </div>
+    <div class="chk">
+      <input type="checkbox" id="setHostPlays" checked>
+      <label for="setHostPlays"><b>ホストも参加する</b> — ホスト画面にも答えを表示しません</label>
+    </div>
+
+    <div style="margin-top:22px">
+      <button id="createRoom" class="btn primary" style="width:100%;padding:16px;font-size:17px">部屋を開く</button>
+    </div>
+    <div id="hostErr" class="state"></div>
+  </div>
+</div>
+
+<!-- ============ JOIN ============ -->
+<div id="screen-join" class="screen hidden">
+  <button class="back" data-back>← もどる</button>
+  <h1 class="logo" style="font-size:32px;margin:10px 0 24px">部屋に入る</h1>
+  <div class="card" style="max-width:460px;margin:0 auto">
+    <label class="f">あなたの名前</label>
+    <input id="joinName" maxlength="12" placeholder="ニックネーム">
+    <label class="f">部屋コード（4文字）</label>
+    <input id="joinCode" maxlength="4" placeholder="ABCD" style="text-transform:uppercase;letter-spacing:.4em;font-size:26px;text-align:center;font-weight:800">
+    <div style="margin-top:20px">
+      <button id="joinRoom" class="btn primary" style="width:100%;padding:16px;font-size:17px">参加する</button>
+    </div>
+    <div id="joinErr" class="state"></div>
+  </div>
+</div>
+
+<!-- ============ GAME ============ -->
+<div id="screen-game" class="screen hidden">
+  <div class="topbar">
+    <div class="pill">部屋 <b id="hdrCode">----</b></div>
+    <div class="pill" id="hdrQ">待機中</div>
+    <div class="pill" id="hdrMe"></div>
+    <div style="flex:1"></div>
+    <div class="pill" id="hdrConn">接続中…</div>
+  </div>
+
+  <div class="game-grid">
+    <div>
+      <div class="playerbox">
+        <div id="ytplayer"></div>
+        <div class="cover" id="cover">
+          <div class="disc" id="disc"><div class="disc-in"></div></div>
+          <div class="cover-label" id="coverLabel">スタンバイ</div>
+        </div>
+        <button id="tapPlay" class="tapplay hidden">▶ タップして再生</button>
+      </div>
+
+      <div class="timerbar"><div id="timerFill"></div></div>
+      <div class="status" id="statusMsg">ホストの開始を待っています…</div>
+      <div class="revealbox hidden" id="revealBox"></div>
+
+      <button id="buzzBtn" class="buzz" disabled>ドン！<small>スペース / Enter でも押せます</small></button>
+
+      <div id="answerArea" class="answerArea hidden">
+        <input id="answerInput" maxlength="60" placeholder="曲名を入力してEnter…">
+        <button id="answerSend" class="btn primary">回答</button>
+      </div>
+
+      <div class="vol">
+        <span>🔊 音量</span><input id="vol" type="range" min="0" max="100" value="70">
+        <span id="volVal">70</span>
+      </div>
+    </div>
+
+    <aside class="side">
+      <div class="scoreboard">
+        <h3>スコア</h3>
+        <div id="scoreboard"></div>
+      </div>
+      <div id="hostPanel" class="hostpanel hidden">
+        <h3>ホスト操作</h3>
+        <div id="hostAnswer"></div>
+        <div class="grid" id="hostBtns"></div>
+      </div>
+      <div id="inviteBox" class="scoreboard hidden">
+        <h3>友達を招待</h3>
+        <div class="codebig" id="inviteCode"></div>
+        <div class="hint" style="text-align:center">このコードを伝えてください</div>
+      </div>
+    </aside>
+  </div>
+</div>
+
+<!-- ============ RESULT ============ -->
+<div id="screen-result" class="screen hidden">
+  <h1 class="logo" style="font-size:34px;margin:30px 0 4px">🏆 結果発表</h1>
+  <div class="card" style="max-width:520px;margin:20px auto">
+    <div class="results">
+      <div class="champ" id="champName"></div>
+      <div id="finalBoard"></div>
+    </div>
+    <div style="margin-top:20px">
+      <button id="againBtn" class="btn primary" style="width:100%;padding:14px">最初の画面にもどる</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ UNLOCK AUDIO (ゲーム画面の上にかぶせる) ============ -->
+<div id="unlockOverlay" class="overlay hidden">
+  <div class="overlay-inner">
+    <h2>音声を有効にします</h2>
+    <p>ブラウザの制限で、一度タップしないと音が出せません。<br>タップすると一瞬だけ音が鳴ります（音が出るかの確認です）。</p>
+    <button id="unlockBtn" class="btn primary">🔊 準備OK！</button>
+    <p class="small">スマホの方はマナーモードを解除し、<br>音量を上げてからタップしてください</p>
+  </div>
+</div>
+
+<script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+<script src="https://www.youtube.com/iframe_api"></script>
+<script>
+"use strict";
+/* =======================================================================
+   イントロドン オンライン  —  single-file P2P intro quiz
+   ・ホストが star-hub の P2P（PeerJS）
+   ・全クライアントが同じ動画をローカル再生し、「自分の端末で音が鳴り始めて
+     からの経過ms」で早押しを判定する（通信遅延の有利不利なし）
+   ・出題リストは Claude API がテーマから生成し、YouTube 検索で動画に紐付け
+   ・回答は正規化+編集距離でローカル自動採点、微妙なものだけ Claude が判定
+   ======================================================================= */
+
+const $  = (id) => document.getElementById(id);
+const ID_PREFIX = "introdon-v1-";
+const HOST_ID = "__host__";
+
+const SCREENS = ["screen-top","screen-host","screen-join","screen-game","screen-result"];
+function show(name){ SCREENS.forEach(s => $(s).classList.toggle("hidden", s !== name)); }
+
+/* アンロックは画面遷移ではなくオーバーレイ。ゲーム画面を表示したまま重ねることで、
+   タップ時点で YouTube プレイヤーが実在し、同期的に再生を開始できる（iOS対策） */
+function openUnlock(){
+  show("screen-game");
+  $("unlockOverlay").classList.remove("hidden");
+  YTP.ensurePlayer();
+}
+function toast(msg, ms){
+  const t = document.createElement("div");
+  t.className = "toast"; t.textContent = msg; document.body.appendChild(t);
+  setTimeout(() => t.remove(), ms || 2600);
+}
+const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+
+/* =======================================================================
+   曲リストのパース（手動モード）
+   ======================================================================= */
+function extractVideoId(raw){
+  const s = String(raw || "").trim();
+  if(!s) return null;
+  let m;
+  if((m = s.match(/[?&]v=([A-Za-z0-9_-]{11})/)))                      return m[1];
+  if((m = s.match(/youtu\.be\/([A-Za-z0-9_-]{11})/)))                  return m[1];
+  if((m = s.match(/\/(?:embed|shorts|live|v)\/([A-Za-z0-9_-]{11})/)))  return m[1];
+  if((m = s.match(/^([A-Za-z0-9_-]{11})$/)))                           return m[1];
+  return null;
+}
+function parseTime(raw){
+  const s = String(raw || "").trim();
+  if(!s) return 0;
+  let m;
+  if((m = s.match(/^(\d+):(\d{1,2})$/)))       return (+m[1]) * 60 + (+m[2]);
+  if((m = s.match(/^(?:(\d+)m)?(\d+)s?$/i)))   return (+(m[1] || 0)) * 60 + (+m[2]);
+  const n = parseFloat(s);
+  return isFinite(n) && n > 0 ? Math.floor(n) : 0;
+}
+function startFromUrl(raw){
+  const m = String(raw || "").match(/[?&](?:t|start)=([0-9hms]+)/i);
+  if(!m) return 0;
+  const hm = m[1].match(/^(?:(\d+)h)?(?:(\d+)m)?(?:(\d+)s?)?$/i);
+  if(hm && (hm[1] || hm[2] || hm[3])) return (+(hm[1]||0))*3600 + (+(hm[2]||0))*60 + (+(hm[3]||0));
+  return parseInt(m[1], 10) || 0;
+}
+function parseSongs(text){
+  const out = [];
+  String(text || "").split(/\r?\n/).forEach(line => {
+    line = line.trim();
+    if(!line || line.startsWith("#")) return;
+    const parts = (line.indexOf("|") >= 0 ? line.split("|") : line.split(",")).map(s => s.trim());
+    const vid = extractVideoId(parts[0]);
+    if(!vid) return;
+    const start = parseTime(parts[3]) || startFromUrl(parts[0]) || 0;
+    out.push({ videoId: vid, title: parts[1] || "(曲名未設定)", artist: parts[2] || "", start, aliases: [] });
+  });
+  return out;
+}
+function shuffled(arr){
+  const a = arr.slice();
+  for(let i = a.length - 1; i > 0; i--){ const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; }
+  return a;
+}
+
+/* =======================================================================
+   Claude API（ブラウザから直接呼ぶ。ホストの端末でのみ実行）
+   ======================================================================= */
+const AI = {
+  key: "", model: "claude-opus-5",
+  hasKey(){ return !!this.key; },
+
+  /* モデルごとに thinking / effort の対応が違うのでここで吸収する */
+  _tune(format, effort){
+    const oc = { format };
+    if(this.model === "claude-haiku-4-5") return { output_config: oc };   // effort / adaptive thinking 非対応
+    oc.effort = effort;
+    return { thinking: { type: "adaptive" }, output_config: oc };
+  },
+
+  _headers(){
+    return {
+      "content-type": "application/json",
+      "x-api-key": this.key,
+      "anthropic-version": "2023-06-01",
+      "anthropic-dangerous-direct-browser-access": "true"
+    };
+  },
+
+  async call(body){
+    const res = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST", headers: this._headers(), body: JSON.stringify(body)
+    });
+    if(!res.ok) throw new Error("Claude API " + res.status + ": " + (await res.text()).slice(0, 300));
+    const j = await res.json();
+    const blk = (j.content || []).find(b => b.type === "text");
+    return blk ? blk.text : "";
+  },
+
+  /* SSE ストリーム。text_delta のみ拾って累積テキストを onDelta に渡す */
+  async stream(body, onDelta){
+    const res = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST", headers: this._headers(), body: JSON.stringify(Object.assign({ stream: true }, body))
+    });
+    if(!res.ok) throw new Error("Claude API " + res.status + ": " + (await res.text()).slice(0, 300));
+    const reader = res.body.getReader(), dec = new TextDecoder();
+    let buf = "", text = "";
+    for(;;){
+      const { done, value } = await reader.read();
+      if(done) break;
+      buf += dec.decode(value, { stream: true });
+      let i;
+      while((i = buf.indexOf("\n")) >= 0){
+        const line = buf.slice(0, i).trim(); buf = buf.slice(i + 1);
+        if(!line.startsWith("data:")) continue;
+        const data = line.slice(5).trim();
+        if(!data || data === "[DONE]") continue;
+        let ev; try { ev = JSON.parse(data); } catch(e){ continue; }
+        if(ev.type === "error") throw new Error((ev.error && ev.error.message) || "stream error");
+        if(ev.type === "content_block_delta" && ev.delta && ev.delta.type === "text_delta"){
+          text += ev.delta.text;
+          if(onDelta) onDelta(text);
+        }
+      }
+    }
+    return text;
+  },
+
+  /* テーマから曲リストを生成 */
+  async generateSongs(theme, count, model, onProgress){
+    const schema = {
+      type: "object",
+      properties: {
+        songs: {
+          type: "array",
+          items: {
+            type: "object",
+            properties: {
+              title:       { type: "string" },
+              artist:      { type: "string" },
+              searchQuery: { type: "string" },
+              aliases:     { type: "array", items: { type: "string" } }
+            },
+            required: ["title", "artist", "searchQuery", "aliases"],
+            additionalProperties: false
+          }
+        }
+      },
+      required: ["songs"],
+      additionalProperties: false
+    };
+
+    const prompt = [
+      "あなたは音楽クイズ「イントロドン」の出題者です。",
+      "テーマ:「" + theme + "」",
+      "",
+      "このテーマに合う楽曲を、ちょうど " + count + " 曲えらんでください。",
+      "",
+      "条件:",
+      "- 実在する楽曲だけを挙げること。架空の曲・うろ覚えの曲は絶対に入れない",
+      "- そのテーマを知っている人なら「聴けばわかる」有名曲を優先する",
+      "- 同じアーティストは最大2曲まで",
+      "- 有名曲だけに寄せすぎず、易しい曲と少し難しい曲を混ぜる",
+      "",
+      "各曲のフィールド:",
+      "- title: 正式な曲名（日本語の曲は日本語表記）",
+      "- artist: アーティスト名",
+      "- searchQuery: YouTubeで公式音源またはMVを見つけるための検索語。「アーティスト名 曲名」を基本に、必要なら Official などを足す",
+      "- aliases: 採点用の別表記。プレイヤーが答えそうな書き方をできるだけ入れる。",
+      "  英語の曲名なら必ずカタカナ読みを入れる（例: Bohemian Rhapsody → ボヘミアンラプソディ）。",
+      "  日本語の曲名なら英題やひらがな表記、漢字/かなのゆれ、略称、副題なしの形など。無ければ空配列"
+    ].join("\n");
+
+    let seen = 0;
+    const text = await this.stream(Object.assign({
+      model: this.model,
+      max_tokens: 32000,
+      messages: [{ role: "user", content: prompt }]
+    }, this._tune({ type: "json_schema", schema }, "medium")), (partial) => {
+      const n = (partial.match(/"searchQuery"/g) || []).length;
+      if(n !== seen){ seen = n; if(onProgress) onProgress(n, count); }
+    });
+
+    const data = JSON.parse(text);
+    return (data.songs || []).filter(s => s && s.title && s.artist);
+  },
+
+  /* 微妙な回答を判定 */
+  async judgeAnswer(answer, song){
+    const schema = {
+      type: "object",
+      properties: { correct: { type: "boolean" }, reason: { type: "string" } },
+      required: ["correct", "reason"],
+      additionalProperties: false
+    };
+    const prompt = [
+      "音楽クイズの採点をしてください。プレイヤーは曲名を答えます。",
+      "",
+      "正解の曲: 「" + song.title + "」 / " + song.artist,
+      (song.aliases && song.aliases.length ? "別表記: " + song.aliases.join(" , ") : ""),
+      "プレイヤーの回答: 「" + answer + "」",
+      "",
+      "同じ曲を指していれば correct = true。判断基準:",
+      "- 表記ゆれ（ひらがな/カタカナ/漢字/ローマ字/英題）、大文字小文字、記号や空白の違いは正解",
+      "- 副題やフィーチャリング表記の有無は問わない",
+      "- 曲名の一部でも、その曲だと一意に特定できるなら正解",
+      "- アーティスト名だけの回答、別の曲名、明らかな当てずっぽうは不正解"
+    ].filter(Boolean).join("\n");
+
+    const text = await this.call(Object.assign({
+      model: this.model,
+      max_tokens: 2000,
+      messages: [{ role: "user", content: prompt }]
+    }, this._tune({ type: "json_schema", schema }, "low")));
+    return JSON.parse(text);
+  }
+};
+
+/* =======================================================================
+   YouTube 検索（曲名 → 動画ID）
+   ======================================================================= */
+const YTSearch = {
+  key: "",
+  cache: {},
+  /* APIキーなしで検索するための公開ミラー。CORS を通さないインスタンスが
+     多いので、一度成功したものを先頭に固定して以降はそれだけを使う。 */
+  mirrors: [
+    { type: "piped",     base: "https://api.piped.private.coffee" },
+    { type: "piped",     base: "https://pipedapi.drgns.space" },
+    { type: "piped",     base: "https://pipedapi.ducks.party" },
+    { type: "piped",     base: "https://pipedapi.kavin.rocks" },
+    { type: "piped",     base: "https://pipedapi.adminforge.de" },
+    { type: "invidious", base: "https://inv.nadeko.net" },
+    { type: "invidious", base: "https://invidious.nerdvpn.de" },
+    { type: "invidious", base: "https://yewtu.be" }
+  ],
+  dead: new Set(),
+
+  loadCache(){
+    try { this.cache = JSON.parse(localStorage.getItem("introdon.vidcache") || "{}"); } catch(e){ this.cache = {}; }
+    try {
+      const fav = localStorage.getItem("introdon.mirror");
+      if(fav){
+        const i = this.mirrors.findIndex(m => m.base === fav);
+        if(i > 0) this.mirrors.unshift(this.mirrors.splice(i, 1)[0]);
+      }
+    } catch(e){}
+  },
+  saveCache(){
+    try { localStorage.setItem("introdon.vidcache", JSON.stringify(this.cache)); } catch(e){}
+  },
+  _promote(m){
+    const i = this.mirrors.indexOf(m);
+    if(i > 0) this.mirrors.unshift(this.mirrors.splice(i, 1)[0]);
+    try { localStorage.setItem("introdon.mirror", m.base); } catch(e){}
+  },
+
+  async resolve(song){
+    const ck = (song.artist + "|" + song.title).toLowerCase();
+    if(this.cache[ck]) return this.cache[ck];
+    const q = song.searchQuery || (song.artist + " " + song.title);
+    let vid = null;
+    if(this.key){ vid = await this._viaDataApi(q, song); }
+    if(!vid)    { vid = await this._viaMirrors(q, song); }
+    if(vid){ this.cache[ck] = vid; this.saveCache(); }
+    return vid;
+  },
+
+  /* タイトルにアーティスト名/曲名を含むものを優先して並べ替える */
+  _rank(items, song){
+    const a = String(song.artist || "").toLowerCase();
+    const t = String(song.title  || "").toLowerCase();
+    return items.slice().map((it, i) => {
+      const s = String(it.title || "").toLowerCase();
+      let score = 0;
+      if(t && s.includes(t)) score += 2;
+      if(a && s.includes(a)) score += 1;
+      return { it, score, i };
+    }).sort((x, y) => y.score - x.score || x.i - y.i).map(x => x.it);
+  },
+  _pick(items, song){ return this._rank(items, song)[0] || null; },
+
+  async _viaDataApi(q, song){
+    const url = "https://www.googleapis.com/youtube/v3/search"
+      + "?part=snippet&type=video&maxResults=5&videoEmbeddable=true&videoSyndicated=true"
+      + "&q=" + encodeURIComponent(q) + "&key=" + encodeURIComponent(this.key);
+    try {
+      const res = await fetch(url);
+      if(!res.ok){
+        const body = await res.text();
+        if(res.status === 403) throw new Error("YouTube API 403（キーの権限かクォータ超過）: " + body.slice(0, 160));
+        throw new Error("YouTube API " + res.status);
+      }
+      const j = await res.json();
+      const items = (j.items || []).map(it => ({ id: it.id && it.id.videoId, title: it.snippet && it.snippet.title }))
+                                   .filter(x => x.id);
+      const best = this._pick(items, song);
+      return best ? best.id : null;
+    } catch(e){
+      if(String(e.message).indexOf("403") >= 0) throw e;   // クォータ切れは即座に伝える
+      return null;
+    }
+  },
+
+  async _viaMirrors(q, song){
+    for(const m of this.mirrors){
+      if(this.dead.has(m.base)) continue;
+      try {
+        const url = m.type === "piped"
+          ? m.base + "/search?filter=videos&q=" + encodeURIComponent(q)
+          : m.base + "/api/v1/search?type=video&q=" + encodeURIComponent(q);
+        const res = await fetch(url);
+        if(!res.ok){ this.dead.add(m.base); continue; }
+        const j = await res.json();
+        const raw = m.type === "piped" ? (j.items || []) : (Array.isArray(j) ? j : []);
+        const items = raw.map(it => ({
+          id: m.type === "piped" ? String(it.url || "").split("v=")[1] : it.videoId,
+          title: it.title
+        })).filter(x => x.id);
+        if(items.length === 0) continue;            // 応答はしたが結果なし。ミラーは生きている
+        this._promote(m);
+        // 上位候補が埋め込み不可でも次の候補を試す
+        for(const cand of this._rank(items, song).slice(0, 4)){
+          if(await this.embeddable(cand.id)) return cand.id;
+        }
+        return null;
+      } catch(e){
+        this.dead.add(m.base);                      // CORS / ネットワーク断は以降スキップ
+      }
+    }
+    return null;
+  },
+
+  /* 埋め込み再生できるか oEmbed で確認（APIキー不要）
+     401/403/404 は「本当に埋め込めない」。それ以外の失敗（429 など）は
+     判定不能なので通す — でないとレート制限で全曲が消える */
+  async embeddable(videoId){
+    try {
+      const res = await fetch("https://www.youtube.com/oembed?format=json&url="
+        + encodeURIComponent("https://www.youtube.com/watch?v=" + videoId));
+      if(res.ok) return true;
+      return !(res.status === 401 || res.status === 403 || res.status === 404);
+    } catch(e){ return true; }   // ネットワーク都合の失敗ではじかない
+  }
+};
+
+/* =======================================================================
+   回答の照合（ローカル自動採点）
+   ======================================================================= */
+const Match = {
+  normalize(s){
+    return String(s == null ? "" : s)
+      .normalize("NFKC")
+      .toLowerCase()
+      .replace(/\([^)]*\)|（[^）]*）|\[[^\]]*\]|【[^】]*】/g, "")   // 括弧の中
+      .replace(/\b(feat|ft)\b[.\s].*$/gi, "")                     // feat. 以降
+      .replace(/[ァ-ヶ]/g, c => String.fromCharCode(c.charCodeAt(0) - 0x60))  // カタカナ→ひらがな
+      .replace(/[ー‐-―－〜～・]/g, "")          // 長音符・ダッシュ・中黒
+      .replace(/[^\p{L}\p{N}]/gu, "")                             // 残りの記号・空白を除去
+      .trim();
+  },
+
+  lev(a, b){
+    if(a === b) return 0;
+    if(!a.length) return b.length;
+    if(!b.length) return a.length;
+    let prev = new Array(b.length + 1);
+    for(let j = 0; j <= b.length; j++) prev[j] = j;
+    for(let i = 1; i <= a.length; i++){
+      const cur = [i];
+      for(let j = 1; j <= b.length; j++){
+        cur[j] = Math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+      }
+      prev = cur;
+    }
+    return prev[b.length];
+  },
+
+  sim(a, b){
+    if(!a || !b) return 0;
+    if(a === b) return 1;
+    const long = a.length >= b.length ? a : b, short = a.length >= b.length ? b : a;
+    // 一方が他方を含み、長さ比が十分なら高スコア扱い
+    if(long.includes(short) && short.length >= 3 && short.length / long.length >= 0.55) return 0.92;
+    return 1 - this.lev(a, b) / long.length;
+  },
+
+  /* 回答から曲名候補をつくる（アーティスト名を含めて答えた場合の救済） */
+  candidates(answer, song){
+    const raw = this.normalize(answer);
+    const out = [raw];
+    const artist = this.normalize(song.artist);
+    if(artist && raw.includes(artist) && raw.length > artist.length) out.push(raw.split(artist).join(""));
+    return out.filter(Boolean);
+  },
+
+  /* 'ok' | 'ng' | 'unsure' */
+  verdict(answer, song){
+    const targets = [song.title].concat(song.aliases || []).map(t => this.normalize(t)).filter(Boolean);
+    if(targets.length === 0) return { v: "unsure", score: 0 };
+    let best = 0;
+    for(const c of this.candidates(answer, song)){
+      for(const t of targets) best = Math.max(best, this.sim(c, t));
+    }
+    if(best >= 0.80) return { v: "ok",     score: best };
+    if(best <= 0.40) return { v: "ng",     score: best };
+    return              { v: "unsure", score: best };
+  }
+};
+
+/* =======================================================================
+   ネットワーク層 (PeerJS)
+   ======================================================================= */
+const net = {
+  peer: null, isHost: false, code: "", conns: new Map(), hostConn: null, myId: null,
+
+  openRoom(onOpen, onFail){
+    this.isHost = true; this.myId = HOST_ID;
+    let tries = 0;
+    const attempt = () => {
+      const code = randomCode();
+      const p = new Peer(ID_PREFIX + code, { debug: 0 });
+      p.on("open", () => {
+        this.peer = p; this.code = code;
+        p.on("connection", (conn) => this._acceptConn(conn));
+        p.on("disconnected", () => { try { p.reconnect(); } catch(e){} });
+        onOpen(code);
+      });
+      p.on("error", (err) => {
+        if(err && err.type === "unavailable-id" && ++tries < 6){ try{ p.destroy(); }catch(e){} attempt(); return; }
+        if(this.peer) return;
+        onFail(err);
+      });
+    };
+    attempt();
+  },
+  _acceptConn(conn){
+    conn.on("open", () => { this.conns.set(conn.peer, conn); });
+    conn.on("data", (msg) => { try { Host.onMessage(conn.peer, msg); } catch(e){ console.error(e); } });
+    const drop = () => { this.conns.delete(conn.peer); Host.onLeave(conn.peer); };
+    conn.on("close", drop);
+    conn.on("error", drop);
+  },
+
+  joinRoom(code, name, onOpen, onFail){
+    this.isHost = false; this.code = code;
+    const p = new Peer({ debug: 0 });
+    let settled = false;
+    p.on("open", (id) => {
+      this.peer = p; this.myId = id;
+      const conn = p.connect(ID_PREFIX + code, { reliable: true });
+      this.hostConn = conn;
+      conn.on("open", () => { settled = true; conn.send({ t: "hello", name }); onOpen(); });
+      conn.on("data", (msg) => { try { Client.onMessage(msg); } catch(e){ console.error(e); } });
+      conn.on("close", () => { if(settled) Client.onHostGone(); });
+    });
+    p.on("error", (err) => {
+      if(settled){ if(err && err.type === "peer-unavailable") Client.onHostGone(); return; }
+      settled = true; onFail(err);
+    });
+  },
+
+  broadcast(msg){
+    this.conns.forEach(c => { try { c.send(msg); } catch(e){} });
+    Client.onMessage(msg);
+  },
+  sendTo(pid, msg){
+    if(pid === HOST_ID){ Client.onMessage(msg); return; }
+    const c = this.conns.get(pid);
+    if(c) { try { c.send(msg); } catch(e){} }
+  },
+  toHost(msg){
+    if(this.isHost){ Host.onMessage(HOST_ID, msg); return; }
+    if(this.hostConn && this.hostConn.open){ try { this.hostConn.send(msg); } catch(e){} }
+  }
+};
+function randomCode(){
+  const cs = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  let s = ""; for(let i = 0; i < 4; i++) s += cs[Math.floor(Math.random() * cs.length)];
+  return s;
+}
+
+/* =======================================================================
+   YouTube プレイヤー（各クライアントのローカル再生）
+   ======================================================================= */
+/* アンロック用のウォームアップ動画（YouTube最初の投稿・19秒・曲ではない） */
+const WARMUP_VIDEO = "jNQXAC9IVRw";
+
+const YTP = {
+  player: null, apiReady: false, unlocked: false,
+  stage: "idle",           // idle | warmup | preload | settle | ready | playing | reveal
+  qId: -1, start: 0, startFrac: null,
+  t0: 0, started: false, volume: 70,
+  _timers: [],
+
+  onApiReady(){ this.apiReady = true; },
+  /* キャッシュから先に読み込まれると onYouTubeIframeAPIReady を取り逃すので、
+     コールバックだけに頼らず YT.Player の存在も見る */
+  ready(){ return this.apiReady || (typeof YT !== "undefined" && typeof YT.Player === "function"); },
+  _clear(){ this._timers.forEach(clearTimeout); this._timers = []; },
+
+  _makePlayer(videoId, autoplay, onReady){
+    return new YT.Player("ytplayer", {
+      width: "100%", height: "100%", videoId,
+      playerVars: {
+        autoplay: autoplay ? 1 : 0, mute: autoplay ? 1 : 0, controls: 0, disablekb: 1, fs: 0,
+        rel: 0, modestbranding: 1, iv_load_policy: 3, playsinline: 1
+      },
+      events: {
+        onReady: onReady,
+        onStateChange: (e) => this._onState(e),
+        onError: () => Client.onMediaError()
+      }
+    });
+  },
+
+  /* アンロック画面を出す時点でプレイヤーを作っておく。
+     こうしておけば「準備OK！」のタップ中に同期的に playVideo() でき、
+     iOS Safari が要求する「ユーザー操作による再生」を満たせる。 */
+  ensurePlayer(){
+    if(this.player) return;
+    if(!this.ready()){ this._timers.push(setTimeout(() => this.ensurePlayer(), 300)); return; }
+    this.stage = "warmup";
+    this.player = this._makePlayer(WARMUP_VIDEO, false, () => {
+      try { this.player.setVolume(0); } catch(e){}
+    });
+  },
+
+  /* 「準備OK！」のクリックハンドラから同期的に呼ぶこと */
+  unlockTap(){
+    this.unlocked = true;
+    if(!this.player) return;
+    try {
+      this.player.setVolume(0);      // ウォームアップ再生は無音で
+      this.player.unMute();
+      this.player.playVideo();       // ← この呼び出しがユーザー操作の中にある必要がある
+    } catch(e){}
+    this._timers.push(setTimeout(() => {
+      if(this.stage === "warmup"){ try { this.player.pauseVideo(); } catch(e){} this.stage = "idle"; }
+    }, 1200));
+  },
+
+  prepare(qId, videoId, start, startFrac){
+    this.qId = qId; this.start = start || 0; this.startFrac = (typeof startFrac === "number") ? startFrac : null;
+    this.stage = "preload"; this.started = false; this.t0 = 0;
+    this._clear();
+
+    if(!this.ready()){ this._timers.push(setTimeout(() => this.prepare(qId, videoId, start, startFrac), 400)); return; }
+
+    if(!this.player){
+      this.player = this._makePlayer(videoId, true, () => {
+        try { this.player.mute(); this.player.playVideo(); } catch(e){}
+      });
+    } else {
+      try { this.player.mute(); this.player.loadVideoById({ videoId, startSeconds: this.start }); }
+      catch(e){ Client.onMediaError(); }
+    }
+    // 保険: プリロードが終わらなくても6秒で ready 扱いにしてホストを待たせない
+    this._timers.push(setTimeout(() => { if(this.stage === "preload" || this.stage === "settle") this._ready(); }, 6000));
+  },
+
+  _resolveStart(){
+    if(this.startFrac == null) return this.start;
+    let dur = 0;
+    try { dur = this.player.getDuration() || 0; } catch(e){}
+    if(!dur) return this.start;
+    return Math.max(0, Math.floor(dur * this.startFrac));
+  },
+
+  _onState(e){
+    const S = YT.PlayerState;
+    if(e.data !== S.PLAYING) return;
+    if(this.stage === "warmup"){
+      // ウォームアップ再生が始まった＝この端末で音を出す権利を得た
+      try { this.player.pauseVideo(); this.player.seekTo(0, true); } catch(err){}
+      this.stage = "idle";
+    } else if(this.stage === "preload"){
+      this.stage = "settle";
+      const at = this._resolveStart();
+      try { this.player.pauseVideo(); this.player.setVolume(0); this.player.unMute(); } catch(err){}
+      this._timers.push(setTimeout(() => {
+        try { this.player.seekTo(at, true); this.player.pauseVideo(); } catch(err){}
+        this._timers.push(setTimeout(() => {
+          try { this.player.pauseVideo(); } catch(err){}
+          this._ready();
+        }, 300));
+      }, 260));
+    } else if(this.stage === "playing" && !this.started){
+      this.started = true; this.t0 = performance.now();
+      Client.onPlaybackStarted();
+    }
+  },
+  _ready(){
+    if(this.stage === "ready") return;
+    this.stage = "ready";
+    net.toHost({ t: "ready", q: this.qId });
+  },
+
+  go(){
+    this.stage = "playing"; this.started = false;
+    try { this.player.setVolume(this.volume); this.player.unMute(); this.player.playVideo(); } catch(e){}
+    this._timers.push(setTimeout(() => {
+      if(this.stage === "playing" && !this.started) $("tapPlay").classList.remove("hidden");
+    }, 1600));
+  },
+  manualPlay(){
+    $("tapPlay").classList.add("hidden");
+    try { this.player.setVolume(this.volume); this.player.unMute(); this.player.playVideo(); } catch(e){}
+  },
+  pause(){ try { this.player.pauseVideo(); } catch(e){} },
+  resume(){ try { this.player.setVolume(this.volume); this.player.playVideo(); } catch(e){} },
+  revealPlay(){
+    this.stage = "reveal";
+    try { this.player.setVolume(this.volume); this.player.unMute(); this.player.playVideo(); } catch(e){}
+  },
+  stop(){
+    this._clear(); this.stage = "idle";
+    const p = () => { try { this.player.pauseVideo(); } catch(e){} };
+    p(); setTimeout(p, 400); setTimeout(p, 1200);
+  },
+  setVolume(v){ this.volume = v; try { this.player.setVolume(v); } catch(e){} },
+  elapsed(){ return this.started ? Math.round(performance.now() - this.t0) : 999999; }
+};
+window.onYouTubeIframeAPIReady = function(){ YTP.onApiReady(); };
+
+/* =======================================================================
+   ホスト側ロジック
+   ======================================================================= */
+const Host = {
+  songs: [], settings: { limit: 30, ansLimit: 20, penalty: 0, autoJudge: true, hideAnswer: true, startMode: "intro" },
+  players: [], qIndex: -1, phase: "lobby",
+  readySet: new Set(), qParticipants: null, buzzes: [],
+  winner: null, answerText: "", reveal: null,
+  judging: false, needManual: false, judgeNote: "", lastAttempt: null,
+  startFrac: null,
+  waitTimer: null, qTimer: null, resolveTimer: null, ansTimer: null,
+  qDeadline: 0, remainMs: 0,
+
+  init(songs, settings, hostName){
+    this.songs = songs; this.settings = settings;
+    this.players = [{ id: HOST_ID, name: hostName, score: 0, locked: false, connected: true }];
+    this.qIndex = -1; this.phase = "lobby";
+  },
+  find(id){ return this.players.find(p => p.id === id); },
+  activePlayers(){ return this.players.filter(p => p.connected); },
+  participants(){
+    return this.activePlayers().filter(p => !this.qParticipants || this.qParticipants.has(p.id));
+  },
+
+  onMessage(pid, msg){
+    if(!msg || !msg.t) return;
+    switch(msg.t){
+      case "hello":  this.onHello(pid, msg.name); break;
+      case "ready":  if(msg.q === this.qIndex && this.phase === "preparing"){ this.readySet.add(pid); this.checkReady(); } break;
+      case "buzz":   this.onBuzz(pid, msg.elapsed, msg.q); break;
+      case "answer": this.onAnswer(pid, msg.text); break;
+    }
+  },
+  onHello(pid, rawName){
+    let name = String(rawName || "ゲスト").slice(0, 12).trim() || "ゲスト";
+    const back = this.players.find(p => p.name === name && !p.connected);
+    if(back){ back.id = pid; back.connected = true; }
+    else {
+      if(this.players.some(p => p.name === name)) name = name + "'";
+      this.players.push({ id: pid, name, score: 0, locked: false, connected: true });
+    }
+    this.push();
+    toast(name + " が参加しました");
+    if(this.phase === "preparing") this.checkReady();
+  },
+  onLeave(pid){
+    const p = this.find(pid);
+    if(!p) return;
+    p.connected = false;
+    toast(p.name + " が退出しました");
+    if(this.phase === "preparing") this.checkReady();
+    this.push();
+  },
+
+  snapshot(){
+    const parts = this.participants();
+    return {
+      t: "state",
+      phase: this.phase, code: net.code,
+      qIndex: this.qIndex, qTotal: this.songs.length,
+      limit: this.settings.limit, ansLimit: this.settings.ansLimit,
+      autoJudge: this.settings.autoJudge, hideAnswer: this.settings.hideAnswer,
+      players: this.players.map(p => ({ id: p.id, name: p.name, score: p.score, locked: p.locked, connected: p.connected })),
+      winner: this.winner ? { id: this.winner.id, name: this.winner.name, elapsed: this.winner.elapsed } : null,
+      answerText: this.answerText,
+      judging: this.judging, needManual: this.needManual, judgeNote: this.judgeNote,
+      lastAttempt: this.lastAttempt,
+      reveal: this.reveal || null,
+      readyCount: parts.filter(p => this.readySet.has(p.id)).length,
+      needCount: parts.length
+    };
+  },
+  push(){ net.broadcast(this.snapshot()); },
+
+  /* --- 出題 --- */
+  startQuestion(){
+    this._clearTimers();
+    this.qIndex++;
+    if(this.qIndex >= this.songs.length){ this.finish(); return; }
+    const s = this.songs[this.qIndex];
+    this.phase = "preparing"; this.readySet.clear(); this.buzzes = [];
+    this.winner = null; this.answerText = ""; this.reveal = null;
+    this.judging = false; this.needManual = false; this.judgeNote = ""; this.lastAttempt = null;
+    this.players.forEach(p => p.locked = false);
+    this.qParticipants = new Set(this.activePlayers().map(p => p.id));
+    // ランダム開始位置は全端末で同じ地点になるよう「割合」で配る
+    this.startFrac = this.settings.startMode === "random" ? (0.15 + Math.random() * 0.35) : null;
+    this.push();
+    net.broadcast({ t: "prepare", q: this.qIndex, videoId: s.videoId, start: s.start, startFrac: this.startFrac });
+    this.waitTimer = setTimeout(() => this.go(), 9000);
+  },
+  checkReady(){
+    if(this.phase !== "preparing") return;
+    const parts = this.participants();
+    const got = parts.filter(p => this.readySet.has(p.id)).length;
+    if(parts.length > 0 && got >= parts.length){ clearTimeout(this.waitTimer); setTimeout(() => this.go(), 400); }
+    else this.push();
+  },
+  go(){
+    if(this.phase !== "preparing") return;
+    clearTimeout(this.waitTimer);
+    this.phase = "playing"; this.buzzes = [];
+    this.push();
+    net.broadcast({ t: "go", q: this.qIndex });
+    this.remainMs = this.settings.limit * 1000;
+    this.qDeadline = Date.now() + this.remainMs + 1500;   // 再生開始のラグ分の猶予
+    this.qTimer = setTimeout(() => this.timeUp(), this.remainMs + 1500);
+  },
+
+  /* --- 早押し --- */
+  onBuzz(pid, elapsed, q){
+    if(this.phase !== "playing" || q !== this.qIndex) return;
+    const p = this.find(pid);
+    if(!p || p.locked || !p.connected) return;
+    if(this.buzzes.some(b => b.id === pid)) return;
+    if(this.buzzes.length === 0){
+      net.broadcast({ t: "pause" });                       // 即座に全員止める
+      clearTimeout(this.qTimer);
+      this.remainMs = Math.max(1000, this.qDeadline - Date.now());
+      this.resolveTimer = setTimeout(() => this.resolveBuzz(), 600);   // 600ms 集めて最速を決定
+    }
+    this.buzzes.push({ id: pid, elapsed: Number(elapsed) || 999999 });
+  },
+  resolveBuzz(){
+    if(this.phase !== "playing" || this.buzzes.length === 0) return;
+    this.buzzes.sort((a, b) => a.elapsed - b.elapsed);
+    const b = this.buzzes[0], p = this.find(b.id);
+    this.winner = { id: b.id, name: p ? p.name : "?", elapsed: b.elapsed };
+    this.answerText = ""; this.judging = false; this.needManual = false; this.judgeNote = "";
+    this.phase = "buzzed";
+    this.push();
+    clearTimeout(this.ansTimer);
+    this.ansTimer = setTimeout(() => {
+      if(this.phase === "buzzed" && !this.answerText && !this.judging){
+        this.judgeNote = "時間切れ";
+        this.judge(false);
+      }
+    }, this.settings.ansLimit * 1000);
+  },
+
+  /* --- 採点 --- */
+  onAnswer(pid, text){
+    if(this.phase !== "buzzed" || !this.winner || this.winner.id !== pid) return;
+    if(this.judging) return;
+    this.answerText = String(text || "").slice(0, 60);
+    clearTimeout(this.ansTimer);
+    this.push();
+    if(this.settings.autoJudge) this.runAutoJudge();
+  },
+  async runAutoJudge(){
+    const song = this.songs[this.qIndex];
+    if(!song){ this.needManual = true; this.push(); return; }
+
+    const local = Match.verdict(this.answerText, song);
+    const pct = Math.round(local.score * 100);
+
+    if(local.v === "ok"){
+      this.judgeNote = "自動判定 (一致度 " + pct + "%)";
+      this.judge(true);
+      return;
+    }
+    // AIキーが無いときは、一致しなかった回答を自動で不正解にしない。
+    // 「ボヘミアンラプソディ」対「Bohemian Rhapsody」のように、正解でも
+    // 文字種が違うだけで一致度0%になるため、ホストの判定に回す。
+    if(!AI.hasKey()){
+      this.needManual = true;
+      this.judgeNote = "自動判定できませんでした（一致度 " + pct + "%）";
+      this.push();
+      return;
+    }
+    if(local.v === "ng"){
+      this.judgeNote = "自動判定 (一致度 " + pct + "%)";
+      this.judge(false);
+      return;
+    }
+    this.judging = true; this.judgeNote = "AIが判定中…"; this.push();
+    try {
+      const r = await AI.judgeAnswer(this.answerText, song);
+      if(this.phase !== "buzzed") return;                  // 判定中に状況が変わっていたら破棄
+      this.judging = false;
+      this.judgeNote = "AI判定: " + String(r.reason || "").slice(0, 60);
+      this.judge(!!r.correct);
+    } catch(e){
+      if(this.phase !== "buzzed") return;
+      this.judging = false; this.needManual = true;
+      this.judgeNote = "AI判定に失敗: " + String(e.message).slice(0, 80);
+      this.push();
+    }
+  },
+  judge(correct){
+    if(this.phase !== "buzzed" || !this.winner) return;
+    clearTimeout(this.ansTimer);
+    const p = this.find(this.winner.id);
+    this.lastAttempt = { id: this.winner.id, name: this.winner.name, text: this.answerText, correct, note: this.judgeNote };
+    this.judging = false; this.needManual = false;
+
+    if(correct){
+      if(p) p.score += 1;
+      this.doReveal(p ? p.name : null);
+      return;
+    }
+    if(p){ p.locked = true; if(this.settings.penalty) p.score -= 1; }
+    this.winner = null; this.answerText = ""; this.buzzes = [];
+    const alive = this.activePlayers().filter(x => !x.locked);
+    if(alive.length === 0){ this.doReveal(null); return; }
+    this.phase = "playing";
+    this.push();
+    net.broadcast({ t: "resume" });
+    this.qDeadline = Date.now() + this.remainMs;
+    this.qTimer = setTimeout(() => this.timeUp(), this.remainMs);
+  },
+  /* 誤判定の救済: 直前の不正解を正解に変える */
+  overturn(){
+    const a = this.lastAttempt;
+    if(this.phase !== "revealed" || !a || a.correct) return;
+    const p = this.find(a.id);
+    if(p){ p.score += 1; if(this.settings.penalty) p.score += 1; p.locked = false; }
+    a.correct = true;
+    this.reveal = Object.assign({}, this.reveal, { scorer: a.name });
+    this.push();
+    toast(a.name + " を正解にしました");
+  },
+
+  timeUp(){
+    if(this.phase !== "playing") return;
+    net.broadcast({ t: "pause" });
+    this.doReveal(null);
+  },
+  doReveal(scorerName){
+    this._clearTimers();
+    const s = this.songs[this.qIndex] || {};
+    this.phase = "revealed";
+    this.reveal = { title: s.title, artist: s.artist, scorer: scorerName || null };
+    this.winner = null; this.judging = false; this.needManual = false;
+    this.push();
+    net.broadcast({ t: "reveal" });
+  },
+  finish(){
+    this._clearTimers();
+    this.phase = "finished"; this.reveal = null; this.winner = null;
+    this.push();
+    net.broadcast({ t: "stop" });
+  },
+  _clearTimers(){
+    clearTimeout(this.waitTimer); clearTimeout(this.qTimer);
+    clearTimeout(this.resolveTimer); clearTimeout(this.ansTimer);
+  }
+};
+
+/* =======================================================================
+   クライアント側（ホスト自身もこれを実行する）
+   ======================================================================= */
+const Client = {
+  state: null, myName: "", buzzedThisQ: false, tickTimer: null,
+
+  onMessage(msg){
+    if(!msg || !msg.t) return;
+    switch(msg.t){
+      case "state":   this.state = msg; this.render(); break;
+      case "prepare":
+        this.buzzedThisQ = false; $("tapPlay").classList.add("hidden");
+        if(!YTP.unlocked){ net.toHost({ t: "ready", q: msg.q }); break; }   // 未アンロック端末は見送り
+        YTP.prepare(msg.q, msg.videoId, msg.start, msg.startFrac);
+        break;
+      case "go":      YTP.go(); this.startTick(); break;
+      case "pause":   YTP.pause(); this.stopTick(); break;
+      case "resume":  YTP.resume(); this.startTick(); break;
+      case "reveal":  this.stopTick(); $("cover").classList.add("off"); YTP.revealPlay(); break;
+      case "stop":    this.stopTick(); YTP.stop(); break;
+    }
+  },
+  onPlaybackStarted(){ $("tapPlay").classList.add("hidden"); this.render(); },
+  onMediaError(){ toast("この動画は再生できませんでした（埋め込み不可 / 削除済みの可能性）"); },
+  onHostGone(){ toast("ホストとの接続が切れました", 6000); $("hdrConn").textContent = "切断"; },
+
+  me(){
+    if(!this.state) return null;
+    const myId = net.isHost ? HOST_ID : net.myId;
+    return this.state.players.find(p => p.id === myId) || null;
+  },
+
+  startTick(){
+    this.stopTick();
+    this.tickTimer = setInterval(() => {
+      const st = this.state; if(!st) return;
+      const limit = (st.limit || 30) * 1000;
+      const e = YTP.started ? (performance.now() - YTP.t0) : 0;
+      $("timerFill").style.width = Math.max(0, Math.min(100, 100 - (e / limit) * 100)) + "%";
+      if(st.phase === "playing" && YTP.started && !this.buzzedThisQ){
+        const me = this.me();
+        $("buzzBtn").disabled = !!(me && me.locked);
+      }
+    }, 100);
+  },
+  stopTick(){ if(this.tickTimer){ clearInterval(this.tickTimer); this.tickTimer = null; } },
+
+  buzz(){
+    const st = this.state;
+    if(!st || st.phase !== "playing" || this.buzzedThisQ) return;
+    const me = this.me(); if(me && me.locked) return;
+    if(!YTP.started) return;
+    this.buzzedThisQ = true;
+    $("buzzBtn").disabled = true;
+    try { if(navigator.vibrate) navigator.vibrate(40); } catch(e){}
+    YTP.pause();
+    net.toHost({ t: "buzz", elapsed: YTP.elapsed(), q: st.qIndex });
+  },
+  sendAnswer(){
+    const v = $("answerInput").value.trim();
+    if(!v) return;
+    net.toHost({ t: "answer", text: v });
+    $("answerInput").value = "";
+    $("answerInput").blur();
+  },
+
+  /* ---------------- 描画 ---------------- */
+  render(){
+    const st = this.state; if(!st) return;
+    if(!YTP.unlocked) return;                        // 音声アンロック前は画面を進めない
+    if(st.phase === "finished"){ this.renderResult(); return; }
+    show("screen-game");
+
+    $("hdrCode").textContent = st.code;
+    $("hdrQ").textContent = st.qIndex < 0 ? "待機中" : ("第 " + (st.qIndex + 1) + " 問 / " + st.qTotal);
+    const me = this.me();
+    $("hdrMe").textContent = (me ? me.name : this.myName) + (net.isHost ? "（ホスト）" : "");
+    $("hdrConn").textContent = net.isHost ? (st.players.filter(p => p.connected).length + " 人接続中") : "接続中";
+
+    $("inviteBox").classList.toggle("hidden", !(net.isHost && st.phase === "lobby"));
+    $("inviteCode").textContent = st.code;
+
+    const cover = $("cover"), label = $("coverLabel"), disc = $("disc");
+    const status = $("statusMsg"), revealBox = $("revealBox");
+    const buzz = $("buzzBtn"), ansArea = $("answerArea");
+
+    revealBox.classList.add("hidden");
+    ansArea.classList.add("hidden");
+    disc.classList.remove("spin");
+
+    switch(st.phase){
+      case "lobby":
+        cover.classList.remove("off"); label.textContent = "スタンバイ";
+        status.innerHTML = (net.isHost
+          ? '部屋コード <span class="em">' + esc(st.code) + '</span> を友達に伝えてください'
+          : "ホストが開始するのを待っています…")
+          + '<br><span style="font-size:13px;color:var(--dim)">⚠ ゲーム中はこのタブを前面にしておいてください（裏に回すと音が鳴りません）</span>';
+        buzz.disabled = true;
+        $("timerFill").style.width = "0%";
+        break;
+
+      case "preparing":
+        cover.classList.remove("off"); label.textContent = "読み込み中…";
+        disc.classList.add("spin");
+        status.innerHTML = '曲を準備しています <span class="em">(' + st.readyCount + "/" + st.needCount + ")</span>";
+        buzz.disabled = true;
+        $("timerFill").style.width = "100%";
+        break;
+
+      case "playing":
+        cover.classList.remove("off"); label.textContent = "♪ 再生中 ♪";
+        disc.classList.add("spin");
+        status.textContent = (me && me.locked) ? "お手つき中… この問題はもう答えられません" : "曲名がわかったら「ドン！」";
+        buzz.disabled = this.buzzedThisQ || !YTP.started || !!(me && me.locked);
+        break;
+
+      case "buzzed": {
+        cover.classList.remove("off"); label.textContent = "早押し！";
+        const isMe = me && st.winner && st.winner.id === me.id;
+        let html = '<span class="em">' + esc(st.winner ? st.winner.name : "?") + "</span> が最速！"
+          + (st.winner ? " (" + (st.winner.elapsed / 1000).toFixed(2) + "秒)" : "");
+        if(isMe && !st.answerText) html += "<br>曲名を入力してください（" + st.ansLimit + "秒以内）";
+        if(st.answerText)          html += "<br>回答:「" + esc(st.answerText) + "」";
+        if(st.judging)             html += '<br><span class="em">採点中…</span>';
+        else if(st.needManual)     html += "<br>ホストの判定を待っています…";
+        status.innerHTML = html;
+        buzz.disabled = true;
+        if(isMe && !st.answerText){ ansArea.classList.remove("hidden"); $("answerInput").focus(); }
+        break;
+      }
+
+      case "revealed":
+        cover.classList.add("off");
+        revealBox.classList.remove("hidden");
+        revealBox.innerHTML = '<div class="t">' + esc(st.reveal ? st.reveal.title : "") + "</div>"
+          + (st.reveal && st.reveal.artist ? '<div class="a">' + esc(st.reveal.artist) + "</div>" : "");
+        status.innerHTML = st.reveal && st.reveal.scorer
+          ? '正解！ <span class="em">' + esc(st.reveal.scorer) + "</span> +1点"
+          : "誰も正解できませんでした…";
+        if(st.lastAttempt && st.lastAttempt.text){
+          status.innerHTML += '<br><span style="font-size:13px;color:var(--dim)">'
+            + esc(st.lastAttempt.name) + " の回答:「" + esc(st.lastAttempt.text) + "」 "
+            + esc(st.lastAttempt.note || "") + "</span>";
+        }
+        buzz.disabled = true;
+        $("timerFill").style.width = "0%";
+        break;
+    }
+
+    this.renderScores(st, me);
+    this.renderHostPanel(st);
+  },
+
+  renderScores(st, me){
+    const sorted = st.players.slice().sort((a, b) => b.score - a.score || a.name.localeCompare(b.name));
+    $("scoreboard").innerHTML = sorted.map((p, i) => {
+      const cls = ["prow", me && p.id === me.id ? "me" : "", p.locked ? "locked" : "", p.connected ? "" : "off"].join(" ");
+      const mark = (st.winner && st.winner.id === p.id) ? "🔔 " : (p.locked ? "❌ " : "");
+      return '<div class="' + cls + '"><span class="rk">' + (i + 1) + '</span><span class="nm">'
+        + mark + esc(p.name) + '</span><span class="sc">' + p.score + "</span></div>";
+    }).join("");
+  },
+
+  renderHostPanel(st){
+    $("hostPanel").classList.toggle("hidden", !net.isHost);
+    if(!net.isHost) return;
+
+    const song = Host.songs[st.qIndex];
+    const inRound = st.phase === "preparing" || st.phase === "playing" || st.phase === "buzzed";
+    const box = $("hostAnswer");
+    let html = "";
+
+    if(inRound && !st.hideAnswer && song){
+      html += '<div class="answercard"><span style="color:var(--dim);font-size:12px">この問題の答え</span><br><b>'
+        + esc(song.title) + "</b> " + esc(song.artist) + "</div>";
+    }
+    if(st.phase === "buzzed"){
+      html += '<div class="answercard"><b>' + esc(st.winner ? st.winner.name : "") + "</b> の回答:<br>"
+        + (st.answerText ? "「" + esc(st.answerText) + "」" : '<span style="color:var(--dim)">（入力待ち）</span>')
+        + (st.judgeNote ? '<br><span style="color:var(--dim);font-size:12px">' + esc(st.judgeNote) + "</span>" : "")
+        + "</div>";
+    }
+    if(st.phase === "revealed" && st.hideAnswer && song){
+      html += '<div class="answercard"><span style="color:var(--dim);font-size:12px">正解</span><br><b>'
+        + esc(song.title) + "</b> " + esc(song.artist) + "</div>";
+    }
+    box.innerHTML = html;
+
+    const b = [];
+    if(st.phase === "lobby") b.push('<button class="btn primary" data-act="start">▶ ゲーム開始</button>');
+
+    if(st.phase === "buzzed"){
+      const manual = !st.autoJudge || st.needManual;
+      if(st.judging) b.push('<button class="btn" disabled>採点中…</button>');
+      else if(manual){
+        if(st.hideAnswer && song) b.push('<div class="answercard" style="border-color:var(--accent2)">判定が必要です。正解は <b>' + esc(song.title) + "</b>（" + esc(song.artist) + "）</div>");
+        b.push('<div class="grid two"><button class="btn ok" data-act="correct">◯ 正解</button><button class="btn ng" data-act="wrong">✕ 不正解</button></div>');
+      } else {
+        b.push('<div class="grid two"><button class="btn ok" data-act="correct">◯ 手動で正解</button><button class="btn ng" data-act="wrong">✕ 手動で不正解</button></div>');
+      }
+    }
+    if(st.phase === "playing")  b.push('<button class="btn" data-act="skip">答えを見る（パス）</button>');
+    if(st.phase === "revealed"){
+      if(st.lastAttempt && !st.lastAttempt.correct && st.lastAttempt.text)
+        b.push('<button class="btn ok" data-act="overturn">やっぱり ' + esc(st.lastAttempt.name) + " を正解にする</button>");
+      b.push(st.qIndex + 1 >= st.qTotal
+        ? '<button class="btn primary" data-act="finish">🏁 結果を見る</button>'
+        : '<button class="btn primary" data-act="next">次の問題へ ▶</button>');
+    }
+    if(st.phase !== "lobby") b.push('<button class="btn" data-act="finish" style="opacity:.7">ゲームを終了する</button>');
+    $("hostBtns").innerHTML = b.join("");
+  },
+
+  renderResult(){
+    const st = this.state;
+    show("screen-result");
+    const sorted = st.players.slice().sort((a, b) => b.score - a.score);
+    const top = sorted[0];
+    const ties = sorted.filter(p => p.score === (top ? top.score : 0));
+    $("champName").textContent = top ? (ties.map(p => p.name).join(" ・ ") + " の勝ち！") : "";
+    $("finalBoard").innerHTML = sorted.map((p, i) =>
+      '<div class="prow"><span class="rk">' + (i + 1) + '</span><span class="nm">' + esc(p.name)
+      + '</span><span class="sc">' + p.score + "</span></div>").join("");
+  }
+};
+
+/* =======================================================================
+   ホスト設定画面 — AI 選曲
+   ======================================================================= */
+let generated = [];     // {title, artist, aliases, videoId|null}
+let genBusy = false;
+
+function loadKeys(){
+  try {
+    $("keyAnthropic").value = localStorage.getItem("introdon.keyAnthropic") || "";
+    $("keyYoutube").value   = localStorage.getItem("introdon.keyYoutube")   || "";
+  } catch(e){}
+  if(!$("keyAnthropic").value) $("keyBox").open = true;
+}
+function saveKeys(){
+  AI.key = $("keyAnthropic").value.trim();
+  AI.model = $("genModel").value || "claude-opus-5";
+  YTSearch.key = $("keyYoutube").value.trim();
+  try {
+    if($("keyRemember").checked){
+      localStorage.setItem("introdon.keyAnthropic", AI.key);
+      localStorage.setItem("introdon.keyYoutube", YTSearch.key);
+    } else {
+      localStorage.removeItem("introdon.keyAnthropic");
+      localStorage.removeItem("introdon.keyYoutube");
+    }
+  } catch(e){}
+}
+function genState(html, cls){ $("genState").innerHTML = cls ? '<span class="' + cls + '">' + html + "</span>" : html; }
+function genBar(pct){ $("genBar").style.width = Math.max(0, Math.min(100, pct)) + "%"; }
+
+function renderGenList(){
+  const box = $("genList");
+  box.classList.toggle("hidden", generated.length === 0);
+  box.innerHTML = generated.map((s, i) =>
+    '<div class="srow' + (s.videoId ? "" : " bad") + '">'
+    + '<span class="n">' + (i + 1) + "</span>"
+    + '<span class="t"><b>' + esc(s.title) + "</b><span>" + esc(s.artist)
+    + (s.videoId ? "" : " — 動画が見つかりませんでした") + "</span></span>"
+    + '<button class="x" data-del="' + i + '" title="削除">✕</button></div>'
+  ).join("");
+}
+$("genList").addEventListener("click", (e) => {
+  const b = e.target.closest("[data-del]");
+  if(!b || genBusy) return;
+  generated.splice(+b.dataset.del, 1);
+  renderGenList();
+  genState("使用可能: " + generated.filter(s => s.videoId).length + " 曲");
+});
+
+/* =======================================================================
+   内蔵テーマ（APIキーなしで遊べる出題リスト）
+   [曲名, アーティスト, 別表記...] — 別表記は自動採点の表記ゆれ吸収に使う
+   ======================================================================= */
+const PRESETS = {
+  "J-POP 2020年代": [
+    ["夜に駆ける","YOASOBI","よるにかける"],["アイドル","YOASOBI"],
+    ["ドライフラワー","優里"],["ベテルギウス","優里"],
+    ["香水","瑛人","こうすい"],["炎","LiSA","ほむら"],
+    ["うっせぇわ","Ado"],["新時代","Ado","しんじだい"],
+    ["踊り子","Vaundy","おどりこ"],["怪獣の花唄","Vaundy","かいじゅうのはなうた"],
+    ["Subtitle","Official髭男dism","サブタイトル"],["Cry Baby","Official髭男dism","クライベイビー"],
+    ["残響散歌","Aimer","ざんきょうさんか"],["W/X/Y","Tani Yuuki"],
+    ["第ゼロ感","10-FEET","だいぜろかん"],["ケセラセラ","Mrs. GREEN APPLE"],
+    ["死ぬのがいいわ","藤井風","しぬのがいいわ"],["きらり","藤井風"],
+    ["春を告げる","yama","はるをつげる"],["猫","DISH//","ねこ"],
+    ["Mela!","緑黄色社会","メラ"],["廻廻奇譚","Eve","かいかいきたん"]
+  ],
+  "J-POP 2010年代": [
+    ["前前前世","RADWIMPS","ぜんぜんぜんせ"],["スパークル","RADWIMPS","Sparkle"],
+    ["恋","星野源","こい"],["SUN","星野源","サン"],
+    ["Lemon","米津玄師","レモン"],["打上花火","DAOKO×米津玄師","うちあげはなび"],
+    ["パプリカ","Foorin"],["マリーゴールド","あいみょん"],
+    ["君はロックを聴かない","あいみょん","きみはロックをきかない"],
+    ["Pretender","Official髭男dism","プリテンダー"],["宿命","Official髭男dism","しゅくめい"],
+    ["RPG","SEKAI NO OWARI","アールピージー"],["Dragon Night","SEKAI NO OWARI","ドラゴンナイト"],
+    ["恋するフォーチュンクッキー","AKB48","こいするフォーチュンクッキー"],
+    ["紅蓮華","LiSA","ぐれんげ"],["ひまわりの約束","秦基博","ひまわりのやくそく"],
+    ["トリセツ","西野カナ"],["R.Y.U.S.E.I.","三代目 J Soul Brothers","リューセイ"],
+    ["女々しくて","ゴールデンボンバー","めめしくて"],
+    ["白日","King Gnu","はくじつ"],["だから僕は音楽を辞めた","ヨルシカ","だからぼくはおんがくをやめた"]
+  ],
+  "J-POP 2000年代": [
+    ["さくらんぼ","大塚愛"],["世界に一つだけの花","SMAP","せかいにひとつだけのはな"],
+    ["花","ORANGE RANGE","はな"],["上海ハニー","ORANGE RANGE","シャンハイハニー"],
+    ["ハナミズキ","一青窈"],["粉雪","レミオロメン","こなゆき"],["3月9日","レミオロメン","さんがつここのか"],
+    ["桜坂","福山雅治","さくらざか"],["TSUNAMI","サザンオールスターズ","ツナミ"],
+    ["千の風になって","秋川雅史","せんのかぜになって"],
+    ["天体観測","BUMP OF CHICKEN","てんたいかんそく"],["車輪の唄","BUMP OF CHICKEN","しゃりんのうた"],
+    ["HANABI","Mr.Children","ハナビ"],["しるし","Mr.Children"],
+    ["Story","AI","ストーリー"],["三日月","絢香","みかづき"],
+    ["涙そうそう","夏川りみ","なだそうそう"],["キセキ","GReeeeN","奇跡"],
+    ["青春アミーゴ","修二と彰","せいしゅんアミーゴ"],
+    ["全力少年","スキマスイッチ","ぜんりょくしょうねん"],["奏","スキマスイッチ","かなで"],
+    ["アゲハ蝶","ポルノグラフィティ","アゲハちょう"],["サウダージ","ポルノグラフィティ"],
+    ["secret base 〜君がくれたもの〜","ZONE","シークレットベース"]
+  ],
+  "J-POP 90年代": [
+    ["LOVE LOVE LOVE","DREAMS COME TRUE","ラブラブラブ"],["未来予想図II","DREAMS COME TRUE","みらいよそうずツー"],
+    ["TOMORROW NEVER KNOWS","Mr.Children","トゥモローネバーノウズ"],["innocent world","Mr.Children","イノセントワールド"],
+    ["ロビンソン","スピッツ"],["チェリー","スピッツ","Cherry"],
+    ["負けないで","ZARD","まけないで"],["揺れる想い","ZARD","ゆれるおもい"],
+    ["LOVE PHANTOM","B'z","ラブファントム"],["いつかのメリークリスマス","B'z"],
+    ["HOWEVER","GLAY","ハウエバー"],["誘惑","GLAY","ゆうわく"],
+    ["YAH YAH YAH","CHAGE and ASKA","ヤーヤーヤー"],["SAY YES","CHAGE and ASKA","セイイエス"],
+    ["First Love","宇多田ヒカル","ファーストラブ"],["Automatic","宇多田ヒカル","オートマティック"],
+    ["世界が終るまでは…","WANDS","せかいがおわるまでは"],["TRUE LOVE","藤井フミヤ","トゥルーラブ"],
+    ["DEPARTURES","globe","デパーチャーズ"],["CAN YOU CELEBRATE?","安室奈美恵","キャンユーセレブレイト"],
+    ["アジアの純真","PUFFY","アジアのじゅんしん"],["ら・ら・ら","大黒摩季","ららら"]
+  ],
+  "昭和・80年代": [
+    ["ルビーの指環","寺尾聰","ルビーのゆびわ"],
+    ["勝手にシンドバッド","サザンオールスターズ","かってにシンドバッド"],["いとしのエリー","サザンオールスターズ"],
+    ["赤いスイートピー","松田聖子","あかいスイートピー"],["青い珊瑚礁","松田聖子","あおいさんごしょう"],
+    ["木綿のハンカチーフ","太田裕美","もめんのハンカチーフ"],
+    ["ギザギザハートの子守唄","チェッカーズ","ギザギザハートのこもりうた"],["涙のリクエスト","チェッカーズ","なみだのリクエスト"],
+    ["夢の中へ","井上陽水","ゆめのなかへ"],["少年時代","井上陽水","しょうねんじだい"],
+    ["恋におちて -Fall in love-","小林明子","こいにおちて"],
+    ["My Revolution","渡辺美里","マイレボリューション"],
+    ["川の流れのように","美空ひばり","かわのながれのように"],
+    ["上を向いて歩こう","坂本九","うえをむいてあるこう","SUKIYAKI"],
+    ["なごり雪","イルカ","なごりゆき"],
+    ["TRAIN-TRAIN","THE BLUE HEARTS","トレイントレイン"],["リンダリンダ","THE BLUE HEARTS","LINDA LINDA"],
+    ["天城越え","石川さゆり","あまぎごえ"],["津軽海峡・冬景色","石川さゆり","つがるかいきょうふゆげしき"],
+    ["卒業写真","荒井由実","そつぎょうしゃしん"],["中央フリーウェイ","荒井由実","ちゅうおうフリーウェイ"],
+    ["異邦人","久保田早紀","いほうじん"]
+  ],
+  "アニソン定番": [
+    ["残酷な天使のテーゼ","高橋洋子","A Cruel Angel's Thesis","ざんこくなてんしのテーゼ"],
+    ["魂のルフラン","高橋洋子","たましいのルフラン"],
+    ["創聖のアクエリオン","AKINO","そうせいのアクエリオン"],
+    ["God knows...","涼宮ハルヒ","ゴッドノウズ"],
+    ["only my railgun","fripSide","オンリーマイレールガン"],
+    ["紅蓮の弓矢","Linked Horizon","ぐれんのゆみや"],["心臓を捧げよ","Linked Horizon","しんぞうをささげよ"],
+    ["君の知らない物語","supercell","きみのしらないものがたり"],
+    ["Butter-Fly","和田光司","バタフライ"],
+    ["ウィーアー!","きただにひろし","We Are"],
+    ["めざせポケモンマスター","松本梨香"],
+    ["そばかす","JUDY AND MARY","Sobakasu"],
+    ["Tank!","SEATBELTS","タンク"],
+    ["鳥の詩","Lia","とりのうた"],
+    ["シルエット","KANA-BOON","Silhouette"],
+    ["ブルーバード","いきものがかり","Blue Bird"],
+    ["Again","YUI","アゲイン"],
+    ["READY STEADY GO","L'Arc〜en〜Ciel","レディステディゴー"],["driver's high","L'Arc〜en〜Ciel","ドライバーズハイ"],
+    ["コネクト","ClariS","Connect"],
+    ["ふわふわ時間","放課後ティータイム","ふわふわタイム"],
+    ["恋愛サーキュレーション","花澤香菜","れんあいサーキュレーション"],
+    ["unravel","TK from 凛として時雨","アンラベル"]
+  ],
+  "ボカロ・ネット発": [
+    ["千本桜","黒うさP","せんぼんざくら"],
+    ["メルト","supercell","Melt"],["ワールドイズマイン","ryo","World is Mine"],
+    ["初音ミクの消失","cosMo@暴走P","はつねミクのしょうしつ"],
+    ["マトリョシカ","ハチ","Matryoshka"],["砂の惑星","ハチ","すなのわくせい"],
+    ["ゴーストルール","DECO*27","Ghost Rule"],["妄想感傷代償連盟","DECO*27","もうそうかんしょうだいしょうれんめい"],
+    ["ロミオとシンデレラ","doriko","Romeo and Cinderella"],
+    ["恋愛裁判","40mP","れんあいさいばん"],
+    ["magnet","minato","マグネット"],
+    ["六兆年と一夜物語","kemu","ろくちょうねんといちやものがたり"],
+    ["脳漿炸裂ガール","れるりり","のうしょうさくれつガール"],
+    ["シャルル","バルーン","Charles"],
+    ["カゲロウデイズ","じん","Kagerou Daze"],["夜咄ディセイブ","じん","よばなしディセイブ"],
+    ["天ノ弱","164","あまのじゃく"],
+    ["命に嫌われている","カンザキイオリ","いのちにきらわれている"],
+    ["アスノヨゾラ哨戒班","Orangestar","アスノヨゾラしょうかいはん"],["快晴","Orangestar","かいせい"],
+    ["強風オールバック","ゆこぴ","きょうふうオールバック"],
+    ["KING","Kanaria","キング"]
+  ],
+  "洋楽 定番（〜2000年代）": [
+    ["Bohemian Rhapsody","Queen","ボヘミアンラプソディ","ボヘミアン・ラプソディ"],
+    ["We Will Rock You","Queen","ウィーウィルロックユー"],
+    ["Hotel California","Eagles","ホテルカリフォルニア"],
+    ["Billie Jean","Michael Jackson","ビリージーン"],["Beat It","Michael Jackson","ビートイット"],
+    ["Imagine","John Lennon","イマジン"],
+    ["Let It Be","The Beatles","レットイットビー"],["Hey Jude","The Beatles","ヘイジュード"],
+    ["Smells Like Teen Spirit","Nirvana","スメルズライクティーンスピリット"],
+    ["Sweet Child O' Mine","Guns N' Roses","スウィートチャイルドオブマイン"],
+    ["Livin' on a Prayer","Bon Jovi","リヴィンオンアプレイヤー"],["It's My Life","Bon Jovi","イッツマイライフ"],
+    ["Every Breath You Take","The Police","エヴリブレスユーテイク"],
+    ["Africa","TOTO","アフリカ"],
+    ["Take On Me","a-ha","テイクオンミー"],
+    ["Last Christmas","Wham!","ラストクリスマス"],
+    ["I Will Always Love You","Whitney Houston","オールウェイズラブユー"],
+    ["My Heart Will Go On","Celine Dion","マイハートウィルゴーオン"],
+    ["...Baby One More Time","Britney Spears","ベイビーワンモアタイム"],
+    ["Yesterday Once More","Carpenters","イエスタデイワンスモア"],["Top of the World","Carpenters","トップオブザワールド"],
+    ["Stairway to Heaven","Led Zeppelin","天国への階段"],
+    ["Wonderwall","Oasis","ワンダーウォール"],["Don't Look Back in Anger","Oasis","ドントルックバックインアンガー"]
+  ],
+  "洋楽 2010年代以降": [
+    ["Shape of You","Ed Sheeran","シェイプオブユー"],["Perfect","Ed Sheeran","パーフェクト"],
+    ["Uptown Funk","Mark Ronson","アップタウンファンク"],["24K Magic","Bruno Mars","24Kマジック"],
+    ["Rolling in the Deep","Adele","ローリングインザディープ"],["Someone Like You","Adele","サムワンライクユー"],
+    ["Happy","Pharrell Williams","ハッピー"],
+    ["Blinding Lights","The Weeknd","ブラインディングライツ"],
+    ["Levitating","Dua Lipa","レヴィテイティング"],
+    ["bad guy","Billie Eilish","バッドガイ"],
+    ["Shake It Off","Taylor Swift","シェイクイットオフ"],["Blank Space","Taylor Swift","ブランクスペース"],
+    ["Despacito","Luis Fonsi","デスパシート"],
+    ["Someone You Loved","Lewis Capaldi"],
+    ["STAY","The Kid LAROI","ステイ"],
+    ["Dynamite","BTS","ダイナマイト"],["Butter","BTS","バター"],
+    ["Old Town Road","Lil Nas X","オールドタウンロード"],
+    ["Let It Go","Idina Menzel","レットイットゴー","ありのままで"],
+    ["Counting Stars","OneRepublic","カウンティングスターズ"],
+    ["Believer","Imagine Dragons","ビリーバー"],["Radioactive","Imagine Dragons","レディオアクティブ"],
+    ["Gangnam Style","PSY","江南スタイル","カンナムスタイル"],
+    ["Flowers","Miley Cyrus","フラワーズ"]
+  ],
+  "カラオケ鉄板（全年代ミックス）": [
+    ["上を向いて歩こう","坂本九","うえをむいてあるこう"],
+    ["川の流れのように","美空ひばり","かわのながれのように"],
+    ["世界に一つだけの花","SMAP","せかいにひとつだけのはな"],
+    ["粉雪","レミオロメン","こなゆき"],
+    ["島唄","THE BOOM","しまうた"],
+    ["春よ、来い","松任谷由実","はるよこい"],
+    ["さくら（独唱）","森山直太朗","さくら"],
+    ["涙そうそう","夏川りみ","なだそうそう"],
+    ["Story","AI","ストーリー"],
+    ["君がいるだけで","米米CLUB","きみがいるだけで"],
+    ["乾杯","長渕剛","かんぱい"],
+    ["栄光の架橋","ゆず","えいこうのかけはし"],["夏色","ゆず","なついろ"],
+    ["空も飛べるはず","スピッツ","そらもとべるはず"],
+    ["桜","コブクロ","さくら"],["蕾","コブクロ","つぼみ"],
+    ["未来へ","Kiroro","みらいへ"],["長い間","Kiroro","ながいあいだ"],
+    ["Tomorrow never knows","Mr.Children","トゥモローネバーノウズ"],
+    ["残酷な天使のテーゼ","高橋洋子","A Cruel Angel's Thesis"],
+    ["前前前世","RADWIMPS","ぜんぜんぜんせ"],
+    ["夜に駆ける","YOASOBI","よるにかける"]
+  ]
+};
+const MIX_KEY = "🎲 全テーマからミックス";
+
+function presetToText(rows){ return rows.map(r => r.join(", ")).join("\n"); }
+function buildMix(n){
+  const all = [];
+  Object.keys(PRESETS).forEach(k => PRESETS[k].forEach(r => all.push(r)));
+  const seen = new Set();
+  return shuffled(all).filter(r => { const k = r[0] + "|" + r[1]; if(seen.has(k)) return false; seen.add(k); return true; }).slice(0, n);
+}
+
+/* 曲名リスト（1行1曲: 曲名, アーティスト, 別表記...）をパース */
+function parseTitleList(text){
+  const out = [];
+  String(text || "").split(/\r?\n/).forEach(line => {
+    line = line.trim();
+    if(!line || line.startsWith("#")) return;
+    const parts = (line.indexOf("|") >= 0 ? line.split("|") : line.split(",")).map(s => s.trim()).filter(Boolean);
+    if(!parts.length) return;
+    out.push({
+      title: parts[0],
+      artist: parts[1] || "",
+      aliases: parts.slice(2),
+      searchQuery: (parts[1] ? parts[1] + " " : "") + parts[0]
+    });
+  });
+  return out;
+}
+
+/* 曲リスト → YouTube 動画ID（4並列） */
+async function resolveAll(songs, baseP, spanP){
+  let done = 0, fatal = null;
+  const results = new Array(songs.length);
+  const queue = songs.map((s, i) => ({ s, i }));
+  const worker = async () => {
+    for(;;){
+      const job = queue.shift();
+      if(!job || fatal) return;
+      try { results[job.i] = await YTSearch.resolve(job.s); }
+      catch(e){ fatal = e; return; }
+      done++;
+      genState("YouTube で動画をさがしています… <b>" + done + " / " + songs.length + "</b>");
+      genBar(baseP + (done / songs.length) * spanP);
+    }
+  };
+  await Promise.all([worker(), worker(), worker(), worker()]);
+  if(fatal) throw fatal;
+  return results;
+}
+
+function finishGeneration(songs, results){
+  generated = songs.map((s, i) => ({
+    title: s.title, artist: s.artist, aliases: s.aliases || [],
+    searchQuery: s.searchQuery, videoId: results[i] || null, start: 0
+  }));
+  renderGenList();
+  genBar(100);
+  const ok = generated.filter(s => s.videoId).length;
+  const ng = generated.length - ok;
+  if(ok === 0){
+    genState(YTSearch.key
+      ? "動画が1曲も見つかりませんでした。YouTube Data API キーのクォータ切れか、曲名の表記をご確認ください。"
+      : "動画が1曲も見つかりませんでした。無料の公開ミラーが現在すべて応答していません。"
+        + '<br>🔑 の欄で <b>YouTube Data API キー</b>（無料・課金設定不要）を設定すると確実に動きます。', "err");
+    $("keyBox").open = true;
+    return;
+  }
+  // 半分以上が見つからないのは曲名の問題ではなく検索側の不調
+  if(!YTSearch.key && ng > 0 && ng >= generated.length * 0.4){
+    genState("完成: <b>" + ok + " 曲</b>（" + ng + " 曲は見つかりませんでした）。"
+      + '<br>⚠ 失敗が多すぎます。無料の公開ミラーが不調です。🔑 の欄で <b>YouTube Data API キー</b>'
+      + "（無料・課金設定不要）を設定するか、しばらく待ってからやり直してください。", "err");
+    $("keyBox").open = true;
+    return;
+  }
+  genState("完成: <b>" + ok + " 曲</b>が使えます。" + (ng ? "（" + ng + " 曲は動画が見つからず除外されます）" : "")
+    + " 不要な曲は ✕ で消せます。", "good");
+  const pc = parseInt($("playCount").value, 10);
+  if(pc && pc > ok) $("playCount").value = ok;
+}
+
+async function runGenerate(){
+  if(genBusy) return;
+  const theme = $("theme").value.trim();
+  if(!theme){ genState("テーマを入力してください。", "err"); return; }
+  saveKeys();
+  if(!AI.hasKey()){
+    genState('Anthropic APIキーがありません。キーを入れるか、無料の「🔎 曲名リストから検索」タブを使ってください。', "err");
+    $("keyBox").open = true; return;
+  }
+  const count = Math.max(5, Math.min(60, parseInt($("genCount").value, 10) || 30));
+  genBusy = true; $("genBtn").disabled = true; generated = []; renderGenList();
+  try {
+    genState("AI が「" + esc(theme) + "」の曲を選んでいます…");
+    genBar(4);
+    const songs = await AI.generateSongs(theme, count, AI.model, (n, total) => {
+      genState("AI が選曲中… <b>" + n + " / " + total + "</b>");
+      genBar(4 + (n / total) * 36);
+    });
+    if(songs.length === 0) throw new Error("曲が生成されませんでした。テーマを変えて試してください。");
+    genState("YouTube で動画をさがしています… 0 / " + songs.length);
+    genBar(40);
+    finishGeneration(songs, await resolveAll(songs, 40, 60));
+  } catch(e){
+    console.error(e); genBar(0);
+    genState("失敗しました: " + esc(String(e.message || e)), "err");
+  } finally {
+    genBusy = false; $("genBtn").disabled = false;
+  }
+}
+
+async function runResolveList(){
+  if(genBusy) return;
+  saveKeys();
+  const songs = parseTitleList($("titleList").value);
+  if(songs.length === 0){ genState("曲名を1行に1曲ずつ入力してください。", "err"); return; }
+  genBusy = true; $("searchBtn").disabled = true; generated = []; renderGenList();
+  try {
+    genState("YouTube で動画をさがしています… 0 / " + songs.length);
+    genBar(2);
+    finishGeneration(songs, await resolveAll(songs, 2, 98));
+  } catch(e){
+    console.error(e); genBar(0);
+    genState("失敗しました: " + esc(String(e.message || e)), "err");
+  } finally {
+    genBusy = false; $("searchBtn").disabled = false;
+  }
+}
+
+function listPrompt(){
+  const theme = $("promptTheme").value.trim() || "【ここにテーマを書く（例: 2010年代のJ-POPヒット）】";
+  return LIST_PROMPT.replace("__THEME__", theme);
+}
+const LIST_PROMPT = [
+  "イントロドン（イントロを聴いて曲名を当てるクイズ）に使う曲を30曲えらんでください。",
+  "テーマ: __THEME__",
+  "",
+  "条件:",
+  "- 実在する楽曲だけ。うろ覚えの曲は入れない",
+  "- そのテーマを知っている人なら「聴けばわかる」有名曲を優先",
+  "- 同じアーティストは最大2曲まで",
+  "",
+  "出力は説明文を一切つけず、次の形式で1行1曲だけを出してください:",
+  "曲名, アーティスト名, 別表記1, 別表記2",
+  "",
+  "「別表記」は採点用の言い換えです。プレイヤーが答えそうな書き方をできるだけ入れてください。",
+  "英語の曲名には必ずカタカナ読みを付けてください。",
+  "例:",
+  "Lemon, 米津玄師, レモン",
+  "残酷な天使のテーゼ, 高橋洋子, A Cruel Angel's Thesis, ざんこくな天使のテーゼ",
+  "Bohemian Rhapsody, Queen, ボヘミアンラプソディ, ボヘミアン・ラプソディ"
+].join("\n");
+
+async function copyPrompt(){
+  const p = listPrompt();
+  try {
+    await navigator.clipboard.writeText(p);
+    toast("プロンプトをコピーしました。無料のチャットAIに貼り付けてください");
+  } catch(e){
+    $("titleList").value = p;
+    toast("コピーできなかったので下の欄に書き出しました。切り取って使ってください", 4000);
+  }
+}
+function openClaude(){
+  const p = listPrompt();
+  window.open("https://claude.ai/new?q=" + encodeURIComponent(p), "_blank", "noopener");
+  navigator.clipboard.writeText(p).catch(() => {});   // 事前入力が効かない場合の保険
+}
+
+/* ---- マイテーマ（この端末に保存されるユーザー定義リスト） ---- */
+const THEME_KEY = "introdon.themes";
+let myThemes = {};
+function loadThemes(){
+  try { myThemes = JSON.parse(localStorage.getItem(THEME_KEY) || "{}"); } catch(e){ myThemes = {}; }
+}
+function persistThemes(){
+  try { localStorage.setItem(THEME_KEY, JSON.stringify(myThemes)); }
+  catch(e){ toast("保存できませんでした（ブラウザの保存容量またはプライベートモード）", 4000); }
+}
+
+/* 「## テーマ名」区切りのテキスト ⇔ テーマ辞書 */
+function themesToText(dict){
+  return Object.keys(dict).map(n => "## " + n + "\n" + presetToText(dict[n])).join("\n\n");
+}
+function textToThemes(text){
+  const out = {}; let cur = null;
+  String(text || "").split(/\r?\n/).forEach(line => {
+    const t = line.trim();
+    if(!t) return;
+    const h = t.match(/^#{1,3}\s*(.+)$/);
+    if(h && /^#{2,3}/.test(t)){ cur = h[1].trim(); out[cur] = out[cur] || []; return; }
+    if(t.startsWith("#")) return;                    // 単独の # はコメント
+    if(!cur){ cur = "読み込んだテーマ"; out[cur] = out[cur] || []; }
+    const parts = (t.indexOf("|") >= 0 ? t.split("|") : t.split(",")).map(s => s.trim()).filter(Boolean);
+    if(parts.length) out[cur].push(parts);
+  });
+  Object.keys(out).forEach(k => { if(out[k].length === 0) delete out[k]; });
+  return out;
+}
+
+function initPresets(){
+  const sel = $("presetPick");
+  const keep = sel.value;
+  const opts = ['<option value="mix">' + esc(MIX_KEY) + "（30曲）</option>"];
+  const mine = Object.keys(myThemes);
+  if(mine.length){
+    opts.push('<optgroup label="マイテーマ">'
+      + mine.map(n => '<option value="c:' + esc(n) + '">⭐ ' + esc(n) + "（" + myThemes[n].length + "曲）</option>").join("")
+      + "</optgroup>");
+  }
+  opts.push('<optgroup label="内蔵テーマ">'
+    + Object.keys(PRESETS).map(n => '<option value="b:' + esc(n) + '">' + esc(n) + "（" + PRESETS[n].length + "曲）</option>").join("")
+    + "</optgroup>");
+  sel.innerHTML = opts.join("");
+  if(keep && [...sel.options].some(o => o.value === keep)) sel.value = keep;
+  onPresetChange();
+}
+function onPresetChange(){
+  $("presetDel").classList.toggle("hidden", !$("presetPick").value.startsWith("c:"));
+}
+function currentPresetRows(){
+  const v = $("presetPick").value;
+  if(v === "mix")               return { name: MIX_KEY, rows: buildMix(30) };
+  if(v.startsWith("c:"))        return { name: v.slice(2), rows: myThemes[v.slice(2)] || [] };
+  return                               { name: v.slice(2), rows: PRESETS[v.slice(2)] || [] };
+}
+function loadPreset(){
+  const { name, rows } = currentPresetRows();
+  if(!rows.length) return;
+  $("titleList").value = presetToText(rows);
+  if($("presetPick").value.startsWith("c:")) $("themeName").value = name;
+  genState("「" + esc(name) + "」を読み込みました（" + rows.length
+    + "曲）。<b>「YouTubeを検索して動画に紐付ける」</b>を押してください。", "good");
+}
+function saveTheme(){
+  const name = $("themeName").value.trim();
+  if(!name){ genState("テーマ名を入力してください。", "err"); $("themeName").focus(); return; }
+  const rows = parseTitleList($("titleList").value).map(s => [s.title, s.artist].concat(s.aliases).filter(Boolean));
+  if(!rows.length){ genState("曲名リストが空です。", "err"); return; }
+  const isNew = !myThemes[name];
+  myThemes[name] = rows;
+  persistThemes(); initPresets();
+  $("presetPick").value = "c:" + name; onPresetChange();
+  genState("マイテーマ「" + esc(name) + "」を" + (isNew ? "保存" : "更新") + "しました（" + rows.length + "曲）。", "good");
+}
+function deleteTheme(){
+  const v = $("presetPick").value;
+  if(!v.startsWith("c:")) return;
+  const name = v.slice(2);
+  if(!confirm("マイテーマ「" + name + "」を削除します。よろしいですか？")) return;
+  delete myThemes[name];
+  persistThemes(); initPresets();
+  genState("「" + esc(name) + "」を削除しました。");
+}
+function exportThemes(){
+  if(Object.keys(myThemes).length === 0){
+    $("themeIO").value = "";
+    genState("書き出せるマイテーマがありません。先に「⭐ マイテーマに保存」してください。", "err");
+    return;
+  }
+  $("themeIO").value = themesToText(myThemes);
+  $("themeIO").select();
+  genState("書き出しました。この欄をコピーして友達に送ってください。", "good");
+}
+function importThemes(text){
+  const dict = textToThemes(text !== undefined ? text : $("themeIO").value);
+  const names = Object.keys(dict);
+  if(names.length === 0){ genState("読み込める内容が見つかりませんでした。「## テーマ名」で始まる形式か確認してください。", "err"); return; }
+  names.forEach(n => { myThemes[n] = dict[n]; });
+  persistThemes(); initPresets();
+  $("presetPick").value = "c:" + names[0]; onPresetChange(); loadPreset();
+  genState(names.length + " 個のテーマを読み込みました: " + esc(names.join(" / ")), "good");
+}
+
+/* =======================================================================
+   動作チェック（友達の端末で遊べるか事前に確認する）
+   ======================================================================= */
+async function runDiag(){
+  const out = $("diagOut"), lines = [];
+  const put = (s) => { lines.push(s); out.innerHTML = lines.join("<br>"); };
+  $("diagBtn").disabled = true;
+  out.innerHTML = "チェック中… (30秒ほどかかります)";
+
+  // 1. P2P 接続
+  try {
+    await new Promise((res, rej) => {
+      const p = new Peer({ debug: 0 });
+      const kill = () => { try { p.destroy(); } catch(e){} };
+      const to = setTimeout(() => { kill(); rej(new Error("タイムアウト")); }, 15000);
+      p.on("open",  () => { clearTimeout(to); kill(); res(); });
+      p.on("error", (e) => { clearTimeout(to); kill(); rej(new Error((e && e.type) || "接続失敗")); });
+    });
+    put('<span class="good">✅ P2P接続（部屋の作成・参加）</span>');
+  } catch(e){
+    put('<span class="err">❌ P2P接続 — ' + esc(e.message) + "<br>　ネットワークがWebRTCを遮断している可能性があります（社内/学内Wi-Fiなど）。モバイル回線で試してください。</span>");
+  }
+
+  // 2. YouTube 埋め込み再生
+  // YouTube はプレイヤーが 200x200 未満だと再生を拒否するのでそれ以上にする
+  $("diagHost").innerHTML = '<div id="diagyt" style="width:320px;height:240px;max-width:100%;margin:10px auto"></div>';
+  try {
+    await new Promise((res, rej) => {
+      if(!YTP.ready()) return rej(new Error("YouTube APIを読み込めていません"));
+      let done = false;
+      const fin = (fn, arg) => { if(done) return; done = true; clearTimeout(to); fn(arg); };
+      const to = setTimeout(() => fin(rej, new Error("再生が始まりませんでした")), 15000);
+      const pl = new YT.Player("diagyt", {
+        width: "320", height: "240", videoId: "dQw4w9WgXcQ",
+        playerVars: { autoplay: 1, mute: 1, controls: 0, playsinline: 1 },
+        events: {
+          // autoplay パラメータだけでは始まらない環境があるので本編と同じく明示的に再生する
+          onReady: () => { try { pl.mute(); pl.playVideo(); } catch(err){} },
+          onStateChange: (e) => { if(e.data === YT.PlayerState.PLAYING) fin(res); },
+          onError: () => fin(rej, new Error("動画を再生できません"))
+        }
+      });
+    });
+    put('<span class="good">✅ YouTube埋め込み再生</span>');
+  } catch(e){
+    put('<span class="err">❌ YouTube再生 — ' + esc(e.message)
+      + "<br>　拡張機能（広告ブロッカー等）を切るか、別のブラウザで試してください。</span>");
+  }
+  $("diagHost").innerHTML = "";
+
+  // 3. 曲検索（キーなしの公開ミラー）
+  try {
+    YTSearch.loadCache();
+    const vid = await YTSearch._viaMirrors("Queen Bohemian Rhapsody", { title: "Bohemian Rhapsody", artist: "Queen" });
+    if(vid) put('<span class="good">✅ 曲の検索（APIキーなし）</span>');
+    else    put('<span class="err">⚠ 曲の検索（APIキーなし）が使えません<br>　ホストになる人だけ YouTube Data API キー（無料）の設定が必要です。参加するだけなら問題ありません。</span>');
+  } catch(e){
+    put('<span class="err">⚠ 曲の検索（APIキーなし）が使えません</span>');
+  }
+
+  put('<span style="color:var(--dim)">✅ が並んでいれば遊べます。音が出るかは「部屋を作る/入る」→「🔊 準備OK！」で確認してください。</span>');
+  $("diagBtn").disabled = false;
+}
+
+/* =======================================================================
+   UI 配線
+   ======================================================================= */
+let mode = "search";                              // search | ai | manual
+const MODES = ["ai", "search", "manual"];
+function setMode(m){
+  mode = m;
+  MODES.forEach(x => {
+    $("tab"   + x[0].toUpperCase() + x.slice(1)).classList.toggle("on", x === m);
+    $("pane"  + x[0].toUpperCase() + x.slice(1)).classList.toggle("hidden", x !== m);
+  });
+  $("genShared").classList.toggle("hidden", m === "manual");
+  $("rowAnthropic").classList.toggle("hidden", m === "search");
+}
+$("goHost").onclick = () => {
+  show("screen-host"); loadKeys(); YTSearch.loadCache(); loadThemes(); initPresets(); setMode(mode);
+};
+$("goJoin").onclick = () => show("screen-join");
+$("diagBtn").onclick = () => runDiag();
+document.querySelectorAll("[data-back]").forEach(b => b.onclick = () => show("screen-top"));
+
+$("tabAi").onclick     = () => setMode("ai");
+$("tabSearch").onclick = () => setMode("search");
+$("tabManual").onclick = () => setMode("manual");
+$("genBtn").onclick    = () => runGenerate();
+$("searchBtn").onclick = () => runResolveList();
+$("presetLoad").onclick = () => loadPreset();
+$("presetPick").onchange = () => { onPresetChange(); loadPreset(); };
+$("presetDel").onclick = () => deleteTheme();
+$("saveTheme").onclick = () => saveTheme();
+$("exportThemes").onclick = () => exportThemes();
+$("importThemes").onclick = () => importThemes();
+$("fileThemes").onclick = () => $("themeFile").click();
+$("themeFile").addEventListener("change", (e) => {
+  const f = e.target.files && e.target.files[0];
+  if(!f) return;
+  const rd = new FileReader();
+  rd.onload = () => { $("themeIO").value = String(rd.result || ""); importThemes(String(rd.result || "")); };
+  rd.onerror = () => genState("ファイルを読めませんでした。", "err");
+  rd.readAsText(f);
+  e.target.value = "";
+});
+$("copyPromptBtn").onclick = () => copyPrompt();
+$("openClaudeBtn").onclick = () => openClaude();
+$("theme").addEventListener("keydown", (e) => { if(e.key === "Enter"){ e.preventDefault(); runGenerate(); } });
+
+let pendingStart = null;
+
+$("createRoom").onclick = () => {
+  const name = ($("hostName").value.trim() || "ホスト").slice(0, 12);
+  const err = $("hostErr");
+  const settings = {
+    limit:    Math.max(3, Math.min(180, parseInt($("setLimit").value, 10) || 30)),
+    ansLimit: Math.max(5, Math.min(120, parseInt($("setAnsLimit").value, 10) || 20)),
+    penalty:  $("setPenalty").value === "1" ? 1 : 0,
+    startMode: $("setStartMode").value === "random" ? "random" : "intro",
+    autoJudge: $("setAutoJudge").checked,
+    hideAnswer: $("setHostPlays").checked
+  };
+
+  let pool;
+  if(mode === "manual"){
+    pool = parseSongs($("songList").value);
+    if(pool.length === 0){ err.innerHTML = '<span class="err">有効な YouTube の URL / 動画ID が1つも見つかりませんでした。</span>'; return; }
+  } else {
+    saveKeys();
+    pool = generated.filter(s => s.videoId);
+    if(pool.length === 0){
+      err.innerHTML = '<span class="err">先に曲リストを用意してください（'
+        + (mode === "ai" ? "テーマを入れて「生成」" : "曲名を入れて「YouTubeを検索して動画に紐付ける」") + "）。</span>";
+      return;
+    }
+  }
+  const want = parseInt($("playCount").value, 10);
+  const list = shuffled(pool).slice(0, (want && want > 0) ? Math.min(want, pool.length) : pool.length);
+  err.textContent = "";
+
+  $("createRoom").disabled = true;
+  $("createRoom").textContent = "接続中…";
+  net.openRoom(() => {
+    Host.init(list, settings, name);
+    Client.myName = name;
+    pendingStart = () => Host.push();
+    openUnlock();
+  }, (e) => {
+    $("createRoom").disabled = false;
+    $("createRoom").textContent = "部屋を開く";
+    err.innerHTML = '<span class="err">接続に失敗しました（' + esc(e && e.type ? e.type : "unknown")
+      + "）。ネットワークを確認して、もう一度お試しください。</span>";
+  });
+};
+
+$("joinRoom").onclick = () => {
+  const name = ($("joinName").value.trim() || "ゲスト").slice(0, 12);
+  const code = $("joinCode").value.trim().toUpperCase();
+  const err = $("joinErr");
+  if(code.length !== 4){ err.innerHTML = '<span class="err">部屋コードは4文字です。</span>'; return; }
+  err.textContent = "";
+  $("joinRoom").disabled = true; $("joinRoom").textContent = "接続中…";
+  net.joinRoom(code, name, () => {
+    Client.myName = name;
+    pendingStart = () => {};
+    openUnlock();
+  }, (e) => {
+    $("joinRoom").disabled = false; $("joinRoom").textContent = "参加する";
+    err.innerHTML = '<span class="err">' + ((e && e.type === "peer-unavailable")
+      ? "その部屋コードは見つかりませんでした。コードとホストの接続状況を確認してください。"
+      : "接続に失敗しました（" + esc(e && e.type ? e.type : "unknown") + "）。") + "</span>";
+  });
+};
+
+$("unlockBtn").onclick = () => {
+  YTP.unlockTap();                      // ← ユーザー操作の中で同期的に再生を開始する
+  requestWakeLock();
+  $("unlockOverlay").classList.add("hidden");
+  if(pendingStart){ pendingStart(); pendingStart = null; }
+  if(Client.state) Client.render();
+  else if(!net.isHost) $("statusMsg").textContent = "ホストの開始を待っています…";
+};
+
+/* 早押しは click ではなく pointerdown。指を離すのを待たないぶん速く、
+   スマホとPCの反応差も縮まる */
+$("buzzBtn").addEventListener("pointerdown", (e) => { e.preventDefault(); Client.buzz(); });
+$("buzzBtn").addEventListener("click", (e) => e.preventDefault());
+$("tapPlay").onclick = () => YTP.manualPlay();
+$("answerSend").onclick = () => Client.sendAnswer();
+$("answerInput").addEventListener("keydown", (e) => { if(e.key === "Enter"){ e.preventDefault(); Client.sendAnswer(); } });
+$("vol").addEventListener("input", (e) => { const v = +e.target.value; $("volVal").textContent = v; YTP.setVolume(v); });
+
+$("hostBtns").addEventListener("click", (e) => {
+  const btn = e.target.closest("[data-act]"); if(!btn || !net.isHost) return;
+  switch(btn.dataset.act){
+    case "start":    Host.startQuestion(); break;
+    case "next":     Host.startQuestion(); break;
+    case "correct":  Host.judgeNote = "ホストが判定"; Host.judge(true);  break;
+    case "wrong":    Host.judgeNote = "ホストが判定"; Host.judge(false); break;
+    case "skip":     Host.timeUp(); break;
+    case "overturn": Host.overturn(); break;
+    case "finish":   Host.finish(); break;
+  }
+});
+
+$("againBtn").onclick = () => location.reload();
+
+document.addEventListener("keydown", (e) => {
+  if($("screen-game").classList.contains("hidden")) return;
+  const tag = (e.target.tagName || "").toLowerCase();
+  if(tag === "input" || tag === "textarea") return;
+  if(e.code === "Space" || e.code === "Enter" || e.key === " "){ e.preventDefault(); Client.buzz(); }
+});
+
+$("joinCode").addEventListener("input", (e) => { e.target.value = e.target.value.toUpperCase(); });
+
+/* スマホの画面が消えると再生も早押しも止まるので、遊んでいる間は点けておく */
+let wakeLock = null;
+async function requestWakeLock(){
+  try {
+    if(!("wakeLock" in navigator) || wakeLock) return;
+    wakeLock = await navigator.wakeLock.request("screen");
+    wakeLock.addEventListener("release", () => { wakeLock = null; });
+  } catch(e){ wakeLock = null; }
+}
+
+/* タブを裏に回すと YouTube は再生を始めてくれない。
+   戻ってきたときに手動再生ボタンを出して復帰できるようにする。 */
+document.addEventListener("visibilitychange", () => {
+  if(document.visibilityState !== "visible") return;
+  if(YTP.unlocked) requestWakeLock();          // 画面ロック解除で失効するので取り直す
+  if(YTP.stage === "playing" && !YTP.started){
+    $("tapPlay").classList.remove("hidden");
+    toast("タブを離れている間は音が鳴りません。「▶ タップして再生」を押してください", 5000);
+  }
+});
+
+window.addEventListener("beforeunload", (e) => {
+  if(net.peer && Client.state && Client.state.phase !== "finished" && Client.state.phase !== "lobby"){
+    e.preventDefault(); e.returnValue = "";
+  }
+});
+</script>
+</body>
+</html>
