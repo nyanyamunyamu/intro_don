@@ -1057,8 +1057,10 @@ const YTP = {
       try { this.player.mute(); this.player.loadVideoById({ videoId, startSeconds: this.start }); }
       catch(e){ Client.onMediaError(); }
     }
-    // 保険: プリロードが終わらなくても6秒で ready 扱いにしてホストを待たせない
-    this._timers.push(setTimeout(() => { if(this.stage === "preload" || this.stage === "settle") this._ready(); }, 6000));
+    // 保険: プリロードが終わらなくても ready 扱いにしてホストを待たせない。
+    // 回線やキャッシュ次第で最初の再生開始まで20秒以上かかることがあるので余裕をとる
+    // （速く終わればすぐ _ready() が呼ばれるので、この値は上限にすぎない）
+    this._timers.push(setTimeout(() => { if(this.stage === "preload" || this.stage === "settle") this._ready(); }, 25000));
   },
 
   _resolveStart(){
@@ -1104,9 +1106,10 @@ const YTP = {
   go(){
     this.stage = "playing"; this.started = false;
     try { this.player.setVolume(this.volume); this.player.unMute(); this.player.playVideo(); } catch(e){}
+    // バッファリング中に出すと誤解を招くので少し待ってから手動再生ボタンを出す
     this._timers.push(setTimeout(() => {
       if(this.stage === "playing" && !this.started) $("tapPlay").classList.remove("hidden");
-    }, 1600));
+    }, 5000));
   },
   manualPlay(){
     $("tapPlay").classList.add("hidden");
@@ -1217,7 +1220,8 @@ const Host = {
     this.startFrac = this.settings.startMode === "random" ? (0.15 + Math.random() * 0.35) : null;
     this.push();
     net.broadcast({ t: "prepare", q: this.qIndex, videoId: s.videoId, start: s.start, startFrac: this.startFrac });
-    this.waitTimer = setTimeout(() => this.go(), 9000);
+    // 全員の準備が整えば即座に go() する。これは応答しない端末があった場合の上限
+    this.waitTimer = setTimeout(() => this.go(), 30000);
   },
   checkReady(){
     if(this.phase !== "preparing") return;
@@ -2114,7 +2118,7 @@ async function runDiag(){
   const out = $("diagOut"), lines = [];
   const put = (s) => { lines.push(s); out.innerHTML = lines.join("<br>"); };
   $("diagBtn").disabled = true;
-  out.innerHTML = "チェック中… (30秒ほどかかります)";
+  out.innerHTML = "チェック中… (最大1分ほどかかります)";
 
   // 1. P2P 接続
   try {
@@ -2138,7 +2142,8 @@ async function runDiag(){
       if(!YTP.ready()) return rej(new Error("YouTube APIを読み込めていません"));
       let done = false;
       const fin = (fn, arg) => { if(done) return; done = true; clearTimeout(to); fn(arg); };
-      const to = setTimeout(() => fin(rej, new Error("再生が始まりませんでした")), 15000);
+      // 回線が遅いと初回再生まで20秒以上かかることがある
+      const to = setTimeout(() => fin(rej, new Error("35秒待っても再生が始まりませんでした")), 35000);
       new YT.Player("diagyt", {
         width: "320", height: "240", videoId: "dQw4w9WgXcQ",
         playerVars: { autoplay: 1, mute: 1, controls: 0, playsinline: 1 },
