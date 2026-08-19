@@ -998,6 +998,9 @@ const YTP = {
   ready(){ return this.apiReady || (typeof YT !== "undefined" && typeof YT.Player === "function"); },
   _clear(){ this._timers.forEach(clearTimeout); this._timers = []; },
 
+  /* onReady は代入より先に発火しうるので、コールバックには必ず
+     ev.target（プレイヤー本体）を渡す。this.player を参照すると null になり、
+     try/catch に握り潰されて「再生されないが無言」という状態になる。 */
   _makePlayer(videoId, autoplay, onReady){
     return new YT.Player("ytplayer", {
       width: "100%", height: "100%", videoId,
@@ -1006,7 +1009,7 @@ const YTP = {
         rel: 0, modestbranding: 1, iv_load_policy: 3, playsinline: 1
       },
       events: {
-        onReady: onReady,
+        onReady: (ev) => { this.player = this.player || ev.target; onReady(ev.target); },
         onStateChange: (e) => this._onState(e),
         onError: () => Client.onMediaError()
       }
@@ -1020,8 +1023,8 @@ const YTP = {
     if(this.player) return;
     if(!this.ready()){ this._timers.push(setTimeout(() => this.ensurePlayer(), 300)); return; }
     this.stage = "warmup";
-    this.player = this._makePlayer(WARMUP_VIDEO, false, () => {
-      try { this.player.setVolume(0); } catch(e){}
+    this.player = this._makePlayer(WARMUP_VIDEO, false, (p) => {
+      try { p.setVolume(0); } catch(e){}
     });
   },
 
@@ -1047,8 +1050,8 @@ const YTP = {
     if(!this.ready()){ this._timers.push(setTimeout(() => this.prepare(qId, videoId, start, startFrac), 400)); return; }
 
     if(!this.player){
-      this.player = this._makePlayer(videoId, true, () => {
-        try { this.player.mute(); this.player.playVideo(); } catch(e){}
+      this.player = this._makePlayer(videoId, true, (p) => {
+        try { p.mute(); p.playVideo(); } catch(e){}
       });
     } else {
       try { this.player.mute(); this.player.loadVideoById({ videoId, startSeconds: this.start }); }
@@ -1069,18 +1072,21 @@ const YTP = {
   _onState(e){
     const S = YT.PlayerState;
     if(e.data !== S.PLAYING) return;
+    // 状態イベントは代入より先に届きうるので e.target で補う
+    this.player = this.player || e.target;
+    const p = this.player || e.target;
     if(this.stage === "warmup"){
       // ウォームアップ再生が始まった＝この端末で音を出す権利を得た
-      try { this.player.pauseVideo(); this.player.seekTo(0, true); } catch(err){}
+      try { p.pauseVideo(); p.seekTo(0, true); } catch(err){}
       this.stage = "idle";
     } else if(this.stage === "preload"){
       this.stage = "settle";
       const at = this._resolveStart();
-      try { this.player.pauseVideo(); this.player.setVolume(0); this.player.unMute(); } catch(err){}
+      try { p.pauseVideo(); p.setVolume(0); p.unMute(); } catch(err){}
       this._timers.push(setTimeout(() => {
-        try { this.player.seekTo(at, true); this.player.pauseVideo(); } catch(err){}
+        try { p.seekTo(at, true); p.pauseVideo(); } catch(err){}
         this._timers.push(setTimeout(() => {
-          try { this.player.pauseVideo(); } catch(err){}
+          try { p.pauseVideo(); } catch(err){}
           this._ready();
         }, 300));
       }, 260));
@@ -2133,12 +2139,13 @@ async function runDiag(){
       let done = false;
       const fin = (fn, arg) => { if(done) return; done = true; clearTimeout(to); fn(arg); };
       const to = setTimeout(() => fin(rej, new Error("再生が始まりませんでした")), 15000);
-      const pl = new YT.Player("diagyt", {
+      new YT.Player("diagyt", {
         width: "320", height: "240", videoId: "dQw4w9WgXcQ",
         playerVars: { autoplay: 1, mute: 1, controls: 0, playsinline: 1 },
         events: {
-          // autoplay パラメータだけでは始まらない環境があるので本編と同じく明示的に再生する
-          onReady: () => { try { pl.mute(); pl.playVideo(); } catch(err){} },
+          // autoplay パラメータだけでは始まらない環境があるので明示的に再生する。
+          // ev.target を使うこと（constructor の戻り値はまだ代入されていない場合がある）
+          onReady: (ev) => { try { ev.target.mute(); ev.target.playVideo(); } catch(err){} },
           onStateChange: (e) => { if(e.data === YT.PlayerState.PLAYING) fin(res); },
           onError: () => fin(rej, new Error("動画を再生できません"))
         }
