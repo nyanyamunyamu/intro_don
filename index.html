@@ -2138,25 +2138,37 @@ async function runDiag(){
   // YouTube はプレイヤーが 200x200 未満だと再生を拒否するのでそれ以上にする
   $("diagHost").innerHTML = '<div id="diagyt" style="width:320px;height:240px;max-width:100%;margin:10px auto"></div>';
   try {
-    await new Promise((res, rej) => {
+    // 「再生が始まったか」だけで判定すると回線が遅いだけの環境を落としてしまう。
+    // バッファリングの開始や再生位置の進行が見えたら「動くが遅い」として通す。
+    const r = await new Promise((res, rej) => {
       if(!YTP.ready()) return rej(new Error("YouTube APIを読み込めていません"));
-      let done = false;
-      const fin = (fn, arg) => { if(done) return; done = true; clearTimeout(to); fn(arg); };
-      // 回線が遅いと初回再生まで20秒以上かかることがある
-      const to = setTimeout(() => fin(rej, new Error("35秒待っても再生が始まりませんでした")), 35000);
+      let done = false, buffered = false, pl = null;
+      const fin = (fn, arg) => { if(done) return; done = true; clearTimeout(to); clearInterval(tick); fn(arg); };
+      const to = setTimeout(() => {
+        if(buffered) fin(res, "slow");
+        else fin(rej, new Error("30秒待っても再生が始まりませんでした"));
+      }, 30000);
+      const tick = setInterval(() => {
+        try { if(pl && pl.getCurrentTime() > 0.3) fin(res, "slow"); } catch(err){}
+      }, 1000);
       new YT.Player("diagyt", {
         width: "320", height: "240", videoId: "dQw4w9WgXcQ",
         playerVars: { autoplay: 1, mute: 1, controls: 0, playsinline: 1 },
         events: {
           // autoplay パラメータだけでは始まらない環境があるので明示的に再生する。
           // ev.target を使うこと（constructor の戻り値はまだ代入されていない場合がある）
-          onReady: (ev) => { try { ev.target.mute(); ev.target.playVideo(); } catch(err){} },
-          onStateChange: (e) => { if(e.data === YT.PlayerState.PLAYING) fin(res); },
-          onError: () => fin(rej, new Error("動画を再生できません"))
+          onReady: (ev) => { pl = ev.target; try { pl.mute(); pl.playVideo(); } catch(err){} },
+          onStateChange: (e) => {
+            if(e.data === YT.PlayerState.BUFFERING) buffered = true;
+            if(e.data === YT.PlayerState.PLAYING) fin(res, "ok");
+          },
+          onError: () => fin(rej, new Error("動画を再生できません（埋め込み禁止・削除済みなど）"))
         }
       });
     });
-    put('<span class="good">✅ YouTube埋め込み再生</span>');
+    put(r === "slow"
+      ? '<span class="good">✅ YouTube埋め込み再生</span> <span style="color:var(--accent)">— ただし開始が遅めです。1問目は読み込みに時間がかかります</span>'
+      : '<span class="good">✅ YouTube埋め込み再生</span>');
   } catch(e){
     put('<span class="err">❌ YouTube再生 — ' + esc(e.message)
       + "<br>　拡張機能（広告ブロッカー等）を切るか、別のブラウザで試してください。</span>");
